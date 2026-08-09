@@ -3,99 +3,116 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>語研大冒險 - App 專用版</title>
-  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  <title>語研大冒險 - 療癒學習版</title>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-color: #f4f7fc;
+      --bg-color: #f7f9fc;
       --card-bg: #ffffff;
-      --text-main: #2d3748;
-      --text-muted: #718096;
-      --primary: #ff6b6b;
-      --primary-hover: #ee5253;
-      --secondary: #00b894;
-      --accent: #fdcb6e;
-      --purple: #6c5ce7;
-      --border-color: #e2e8f0;
-      --shadow: 0 8px 20px rgba(0,0,0,0.06);
-      --radius: 24px;
+      --text-main: #4a5568;
+      --text-muted: #a0aec0;
+      --primary: #ff8b94;
+      --primary-hover: #ff6b7b;
+      --secondary: #a8e6cf;
+      --secondary-text: #2d6a4f;
+      --accent: #ffd3b6;
+      --purple: #dcedc1;
+      --purple-text: #3d5a45;
+      --border-color: #edf2f7;
+      --shadow: 0 10px 25px -5px rgba(255, 139, 148, 0.12), 0 8px 10px -6px rgba(255, 139, 148, 0.08);
+      --radius: 22px;
     }
 
     [data-theme="dark"] {
-      --bg-color: #0f172a;
-      --card-bg: #1e293b;
-      --text-main: #f8fafc;
+      --bg-color: #1e1e24;
+      --card-bg: #2d2d3a;
+      --text-main: #e2e8f0;
       --text-muted: #94a3b8;
-      --primary: #f87171;
-      --primary-hover: #ef4444;
-      --secondary: #34d399;
-      --accent: #fbbf24;
-      --purple: #8b5cf6;
-      --border-color: #334155;
-      --shadow: 0 8px 20px rgba(0,0,0,0.3);
+      --primary: #ff8b94;
+      --primary-hover: #ff6b7b;
+      --secondary: #2b4c3f;
+      --secondary-text: #a8e6cf;
+      --accent: #4a3d31;
+      --purple: #324332;
+      --purple-text: #dcedc1;
+      --border-color: #3f3f51;
+      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Quicksand', 'Noto Sans TC', sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 12px; }
+    body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 12px 12px 80px 12px; }
 
-    .app-container { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 14px; padding-bottom: 30px; }
+    .app-container { width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 14px; }
 
-    /* App Header */
-    header { background: var(--card-bg); padding: 14px 18px; border-radius: var(--radius); box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: center; border: 2px solid var(--border-color); }
-    .logo { font-size: 17px; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 6px; }
-    .nav-controls { display: flex; gap: 8px; align-items: center; }
-    select, button { font-size: 13px; padding: 6px 10px; border-radius: 10px; border: 2px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-weight: 600; outline: none; cursor: pointer; }
-    .btn-icon { background: var(--accent); border: none; font-size: 14px; padding: 6px 10px; border-radius: 50%; }
+    /* 頂部導航與登入列 */
+    header { background: var(--card-bg); padding: 12px 16px; border-radius: var(--radius); box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: center; border: 2px solid var(--border-color); }
+    .logo-area { display: flex; flex-direction: column; gap: 2px; }
+    .logo { font-size: 14px; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 5px; }
+    .user-status { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; cursor: pointer; }
+    .user-status span { color: var(--text-main); font-weight: 600; }
+
+    .nav-controls { display: flex; gap: 6px; align-items: center; }
+    select, button { font-size: 12px; padding: 6px 10px; border-radius: 12px; border: 2px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-weight: 600; outline: none; cursor: pointer; transition: 0.2s; }
+    select:hover, button:hover { border-color: var(--primary); }
+    .btn-icon { background: var(--accent); border: none; font-size: 13px; padding: 6px 9px; border-radius: 50%; }
 
     /* 戰力看板 */
-    .status-bar { background: var(--card-bg); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); border: 2px solid var(--border-color); display: flex; justify-content: space-around; text-align: center; }
+    .status-bar { background: var(--card-bg); border-radius: var(--radius); padding: 14px; box-shadow: var(--shadow); border: 2px solid var(--border-color); display: flex; justify-content: space-around; text-align: center; }
     .status-item { display: flex; flex-direction: column; gap: 2px; }
-    .status-val { font-size: 20px; font-weight: 700; color: var(--primary); }
-    .status-label { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+    .status-val { font-size: 18px; font-weight: 700; color: var(--primary); }
+    .status-label { font-size: 10px; color: var(--text-muted); font-weight: 600; }
 
-    /* 下方導覽列 Tabs */
-    .tabs { display: flex; gap: 6px; background: var(--card-bg); padding: 6px; border-radius: var(--radius); border: 2px solid var(--border-color); box-shadow: var(--shadow); }
-    .tab-btn { flex: 1; padding: 10px 4px; border-radius: 14px; border: none; background: transparent; color: var(--text-muted); font-size: 12px; font-weight: 700; cursor: pointer; text-align: center; transition: 0.2s; }
-    .tab-btn.active { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(255,107,107,0.3); }
+    /* 內容卡片 */
+    .card { background: var(--card-bg); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); border: 2px solid var(--border-color); }
+    .card h3 { font-size: 14px; margin-bottom: 8px; font-weight: 700; color: var(--text-main); }
 
     .tab-content { display: none; flex-direction: column; gap: 14px; }
     .tab-content.active { display: flex; }
 
-    .card { background: var(--card-bg); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border: 2px solid var(--border-color); }
-
     /* 微目標 */
-    .todo-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: var(--bg-color); border-radius: 12px; border: 1px solid var(--border-color); margin-top: 8px; font-size: 13px; }
-    .btn-action { background: var(--secondary); color: white; border: none; padding: 8px 14px; border-radius: 10px; font-weight: 700; font-size: 12px; cursor: pointer; }
+    .todo-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: var(--bg-color); border-radius: 14px; border: 1px solid var(--border-color); margin-top: 6px; font-size: 12px; }
+    .btn-action { background: var(--secondary); color: var(--secondary-text); border: none; padding: 6px 12px; border-radius: 10px; font-weight: 700; font-size: 11px; cursor: pointer; }
 
     /* 3D 記憶卡 */
-    .flashcard-container { perspective: 1000px; width: 100%; height: 220px; cursor: pointer; margin-top: 10px; }
+    .flashcard-container { perspective: 1000px; width: 100%; height: 200px; cursor: pointer; margin-top: 8px; }
     .flashcard { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.5s cubic-bezier(0.4, 0.2, 0.2, 1); border-radius: var(--radius); box-shadow: var(--shadow); }
     .flashcard.flipped { transform: rotateY(180deg); }
-    .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 15px; border-radius: var(--radius); border: 3px solid var(--border-color); background: var(--card-bg); text-align: center; }
-    .card-back { transform: rotateY(180deg); background: var(--purple); color: white; border-color: var(--purple); }
+    .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 15px; border-radius: var(--radius); border: 2px solid var(--border-color); background: var(--card-bg); text-align: center; }
+    .card-back { transform: rotateY(180deg); background: var(--purple); color: var(--purple-text); border-color: var(--purple); }
 
-    /* 遊戲小卡 */
-    .game-arena { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
-    .game-card-btn { padding: 16px 10px; border-radius: 16px; border: 2px solid var(--border-color); background: var(--card-bg); font-weight: 700; font-size: 13px; cursor: pointer; text-align: center; color: var(--text-main); }
-    .game-card-btn:hover { border-color: var(--secondary); }
+    /* 遊戲區塊 */
+    .game-arena { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 8px; }
+    .game-card-btn { padding: 14px 10px; border-radius: 16px; border: 2px solid var(--border-color); background: var(--bg-color); font-weight: 700; font-size: 12px; cursor: pointer; text-align: center; color: var(--text-main); transition: 0.2s; }
+    .game-card-btn:hover { border-color: var(--primary); transform: translateY(-2px); }
+
+    /* 底部固定導覽列 (Tabs) */
+    .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card-bg); border-top: 2px solid var(--border-color); display: flex; justify-content: space-around; padding: 8px 0; z-index: 999; box-shadow: 0 -4px 15px rgba(0,0,0,0.03); }
+    .tab-btn { display: flex; flex-direction: column; align-items: center; gap: 2px; background: none; border: none; color: var(--text-muted); font-size: 10px; font-weight: 700; cursor: pointer; flex: 1; padding: 4px; transition: 0.2s; }
+    .tab-btn span.icon { font-size: 18px; }
+    .tab-btn.active { color: var(--primary); }
 
     /* 彈跳視窗 Modal */
-    .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; pointer-events: none; transition: 0.3s; padding: 15px; }
+    .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; pointer-events: none; transition: 0.3s; padding: 15px; }
     .modal.active { opacity: 1; pointer-events: auto; }
-    .modal-box { background: var(--card-bg); width: 100%; max-width: 420px; max-height: 85vh; overflow-y: auto; padding: 20px; border-radius: var(--radius); border: 3px solid var(--border-color); box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 12px; }
+    .modal-box { background: var(--card-bg); width: 100%; max-width: 380px; max-height: 85vh; overflow-y: auto; padding: 20px; border-radius: var(--radius); border: 2px solid var(--border-color); box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 12px; }
 
-    .badges-grid { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
-    .badge { padding: 6px 12px; border-radius: 16px; background: var(--bg-color); border: 2px solid var(--border-color); font-size: 11px; font-weight: bold; opacity: 0.4; }
-    .badge.unlocked { opacity: 1; border-color: var(--accent); background: rgba(253, 203, 110, 0.2); }
-    .vocab-tag { border-bottom: 2px dashed var(--accent); color: var(--primary); cursor: pointer; font-weight: bold; }
+    .badges-grid { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+    .badge { padding: 5px 10px; border-radius: 12px; background: var(--bg-color); border: 2px solid var(--border-color); font-size: 10px; font-weight: bold; opacity: 0.4; }
+    .badge.unlocked { opacity: 1; border-color: var(--accent); background: #fff3e0; color: #d97706; }
+    .vocab-tag { border-bottom: 2px dashed var(--primary); color: var(--primary); cursor: pointer; font-weight: bold; }
   </style>
 </head>
 <body data-theme="light">
 
   <div class="app-container">
-    <!-- App 頂部列 -->
+    <!-- 頂部列：精緻 Logo 與 登入狀態 -->
     <header>
-      <div class="logo">🐱 語研冒險 <span style="font-size: 10px; background: var(--accent); padding: 2px 6px; border-radius: 8px; color: #2d3748;">App v2.6</span></div>
+      <div class="logo-area">
+        <div class="logo">🌸 語研大冒險</div>
+        <div class="user-status" onclick="toggleLogin()">
+          👤 登入身份: <span id="login-user-name">冒險者 (已登入)</span>
+        </div>
+      </div>
       <div class="nav-controls">
         <select id="lang-select" onchange="changeLanguage(this.value)">
           <option value="en_toeic">🇬🇧 英語</option>
@@ -109,7 +126,7 @@
       </div>
     </header>
 
-    <!-- App 戰力看板 -->
+    <!-- 戰力看板 -->
     <div class="status-bar">
       <div class="status-item">
         <span class="status-val" id="user-xp">150</span>
@@ -125,20 +142,12 @@
       </div>
     </div>
 
-    <!-- App 下方切換 Tabs -->
-    <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('hub')">🗺️ 大廳</button>
-      <button class="tab-btn" onclick="switchTab('vocab')">🎴 記憶卡</button>
-      <button class="tab-btn" onclick="switchTab('games')">🎮 遊戲</button>
-      <button class="tab-btn" onclick="switchTab('profile')">👤 我的</button>
-    </div>
-
-    <!-- 1. 學習大廳 -->
+    <!-- 內容頁籤切換區塊 -->
     <div id="tab-hub" class="tab-content active">
       <div class="card">
-        <h3 style="font-size: 15px; margin-bottom: 6px;">📅 今日微目標</h3>
+        <h3>📅 今日療癒微目標</h3>
         <div class="todo-item">
-          <span>📖 閱讀今日外語精選短文</span>
+          <span>📖 閱讀今日精選外語短文</span>
           <button class="btn-action" onclick="completeTodo(this, 20)">完成 +20</button>
         </div>
         <div class="todo-item">
@@ -147,80 +156,96 @@
         </div>
       </div>
       <div class="card">
-        <h3 style="font-size: 15px; margin-bottom: 6px;">📚 智慧外語圖書館</h3>
-        <div id="library-article-box" style="font-size: 13px; line-height: 1.6; background: var(--bg-color); padding: 12px; border-radius: 12px; border: 1px solid var(--border-color);"></div>
+        <h3>📚 智慧外語圖書館</h3>
+        <div id="library-article-box" style="font-size: 12px; line-height: 1.6; background: var(--bg-color); padding: 12px; border-radius: 12px; border: 1px solid var(--border-color);"></div>
       </div>
     </div>
 
-    <!-- 2. SRS 記憶卡 -->
+    <!-- SRS 記憶卡 -->
     <div id="tab-vocab" class="tab-content">
       <div class="card" style="text-align: center;">
-        <h3 style="font-size: 15px;">🎴 3D 深度間隔記憶卡</h3>
+        <h3>🎴 3D 深度間隔記憶卡</h3>
         <div class="flashcard-container" onclick="flipCard()">
           <div class="flashcard" id="vocab-card">
             <div class="card-face card-front">
-              <h2 id="card-word" style="font-size: 24px; color: var(--primary);">Loading...</h2>
-              <p id="card-phonetic" style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">/ phonetic /</p>
-              <p style="font-size: 11px; margin-top: 15px; color: var(--text-muted);">👉 點擊翻轉看中文</p>
+              <h2 id="card-word" style="font-size: 22px; color: var(--primary);">Loading...</h2>
+              <p id="card-phonetic" style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">/ phonetic /</p>
+              <p style="font-size: 10px; margin-top: 12px; color: var(--text-muted);">👉 點擊翻轉看中文</p>
             </div>
             <div class="card-face card-back">
-              <h3 id="card-meaning" style="font-size: 18px; margin-bottom: 6px;">中文解釋</h3>
-              <p id="card-example" style="font-size: 12px; font-style: italic;">例句示範</p>
+              <h3 id="card-meaning" style="font-size: 16px; margin-bottom: 4px;">中文解釋</h3>
+              <p id="card-example" style="font-size: 11px; font-style: italic;">例句示範</p>
             </div>
           </div>
         </div>
-        <div style="margin-top: 12px; display: flex; justify-content: center; gap: 8px;">
-          <button class="btn-action" style="background:var(--primary);" onclick="speakWord(1.0)">🔊 發音</button>
-          <button class="btn-action" style="background:var(--secondary);" onclick="speakWord(0.75)">🐢 慢速</button>
+        <div style="margin-top: 10px; display: flex; justify-content: center; gap: 6px;">
+          <button class="btn-action" style="background:var(--primary); color:white;" onclick="speakWord(1.0)">🔊 發音</button>
+          <button class="btn-action" style="background:var(--accent);" onclick="speakWord(0.75)">🐢 慢速</button>
         </div>
-        <div style="display: flex; gap: 6px; margin-top: 12px;">
-          <button class="btn-action" style="flex:1; background:#e74c3c;" onclick="rateSRS(1)">有點難</button>
-          <button class="btn-action" style="flex:1; background:#f39c12;" onclick="rateSRS(3)">還記得</button>
-          <button class="btn-action" style="flex:1; background:#2ecc71;" onclick="rateSRS(5)">超簡單</button>
+        <div style="display: flex; gap: 6px; margin-top: 10px;">
+          <button class="btn-action" style="flex:1; background:#ffccd5; color:#990022;" onclick="rateSRS(1)">有點難</button>
+          <button class="btn-action" style="flex:1; background:#ffe5d9; color:#994d00;" onclick="rateSRS(3)">還記得</button>
+          <button class="btn-action" style="flex:1; background:#d8f3dc; color:#1b4332;" onclick="rateSRS(5)">超簡單</button>
         </div>
       </div>
     </div>
 
-    <!-- 3. 挑戰遊戲 -->
+    <!-- 遊戲中心 -->
     <div id="tab-games" class="tab-content">
       <div class="card">
-        <h3 style="font-size: 15px;">🎮 學習小遊戲中心</h3>
+        <h3>🎮 學習小遊戲中心</h3>
         <div class="game-arena">
-          <div class="game-card-btn" onclick="showGameArea('🧩 詞義配對', '配對訓練成功！', 15)">🧩 詞義配對<br><span style="font-size: 10px; color:var(--text-muted);">+15 XP</span></div>
-          <div class="game-card-btn" onclick="showGameArea('⚡ 句型重組', '文法排列過關！', 20)">⚡ 句型重組<br><span style="font-size: 10px; color:var(--text-muted);">+20 XP</span></div>
-          <div class="game-card-btn" onclick="showGameArea('🎧 聽音辨義', '聽力反應過關！', 15)">🎧 聽音辨義<br><span style="font-size: 10px; color:var(--text-muted);">+15 XP</span></div>
-          <div class="game-card-btn" onclick="showGameArea('🗣️ AI 跟讀', '口說評分滿分！', 25)">🗣️ AI 跟讀<br><span style="font-size: 10px; color:var(--text-muted);">+25 XP</span></div>
+          <div class="game-card-btn" onclick="showGameArea('🧩 詞義配對', '配對訓練成功！', 15)">🧩 詞義配對<br><span style="font-size: 9px; color:var(--text-muted);">+15 XP</span></div>
+          <div class="game-card-btn" onclick="showGameArea('⚡ 句型重組', '文法排列過關！', 20)">⚡ 句型重組<br><span style="font-size: 9px; color:var(--text-muted);">+20 XP</span></div>
+          <div class="game-card-btn" onclick="showGameArea('🎧 聽音辨義', '聽力反應過關！', 15)">🎧 聽音辨義<br><span style="font-size: 9px; color:var(--text-muted);">+15 XP</span></div>
+          <div class="game-card-btn" onclick="showGameArea('🗣️ AI 跟讀', '口說評分滿分！', 25)">🗣️ AI 跟讀<br><span style="font-size: 9px; color:var(--text-muted);">+25 XP</span></div>
         </div>
         <div id="game-active-area" style="margin-top: 10px; display: none;"></div>
       </div>
     </div>
 
-    <!-- 4. 個人中心 -->
+    <!-- 個人中心 -->
     <div id="tab-profile" class="tab-content">
       <div class="card">
-        <h3 style="font-size: 15px;">👤 成就與錯題筆記</h3>
+        <h3>👤 成就與錯題筆記</h3>
         <div class="badges-grid" id="badge-container">
           <div class="badge" id="ach-1">🌟 初次冒險</div>
           <div class="badge" id="ach-2">📝 錯題征服</div>
           <div class="badge" id="ach-3">🏆 考場 MVP</div>
         </div>
-        <h4 style="font-size: 13px; margin-top: 16px; margin-bottom: 6px;">📖 智慧生字筆記本</h4>
-        <div id="ai-wrong-list" style="background:var(--bg-color); padding: 10px; border-radius: 10px; border:1px solid var(--border-color); font-size: 12px; max-height: 140px; overflow-y: auto;">
+        <h3 style="font-size: 13px; margin-top: 14px; margin-bottom: 4px;">📖 智慧生字筆記本</h3>
+        <div id="ai-wrong-list" style="background:var(--bg-color); padding: 10px; border-radius: 10px; border:1px solid var(--border-color); font-size: 11px; max-height: 120px; overflow-y: auto;">
           目前尚無筆記紀錄！
         </div>
       </div>
     </div>
   </div>
 
+  <!-- 底部固定導覽列 (移動至最下方) -->
+  <nav class="bottom-nav">
+    <button class="tab-btn active" onclick="switchTab('hub', this)">
+      <span class="icon">🗺️</span>大廳
+    </button>
+    <button class="tab-btn" onclick="switchTab('vocab', this)">
+      <span class="icon">🎴</span>記憶卡
+    </button>
+    <button class="tab-btn" onclick="switchTab('games', this)">
+      <span class="icon">🎮</span>遊戲
+    </button>
+    <button class="tab-btn" onclick="switchTab('profile', this)">
+      <span class="icon">👤</span>我的
+    </button>
+  </nav>
+
   <!-- 模擬考 Modal -->
   <div class="modal" id="exam-modal">
     <div class="modal-box">
       <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h3 style="font-size: 15px;">全真檢定模擬考</h3>
-        <span style="font-size: 12px; color: var(--primary); font-weight: bold;">09:59</span>
+        <h3 style="font-size: 13px; margin:0;">全真檢定模擬考</h3>
+        <span style="font-size: 11px; color: var(--primary); font-weight: bold;">09:59</span>
       </div>
-      <div id="exam-quiz-content" style="font-size: 13px;"></div>
-      <button class="btn-action" onclick="closeExamModal()">交卷領獎勵</button>
+      <div id="exam-quiz-content" style="font-size: 12px;"></div>
+      <button class="btn-action" style="width:100%; padding:10px; background:var(--primary); color:white;" onclick="closeExamModal()">交卷領獎勵</button>
     </div>
   </div>
 
@@ -255,7 +280,7 @@
           { word: "Voyage", phonetic: "/vwa.jaʒ/", meaning: "旅行", example: "J'aime voyager." },
           { word: "Courage", phonetic: "/ku.ʁaʒ/", meaning: "勇氣", example: "Bon courage!" }
         ],
-        article: { title: "Français", content: "Chaque <span class='vocab-tag' onclick='collectWord(\"Voyage\", \"旅行\")'>voyage</span> donne du <span class='vocab-tag' onclick='collectWord(\"Courage\", \"勇氣\")'>courage</span>." },
+        article: { title: "Français", content: "Chaque <span class='vocab-tag' onclick='collectWord(\"Voyage\", \"旅行\")'>voyage</span> donne du <span class='vocab-tag' onclick='collectWord(\>勇氣\")'>courage</span>." },
         exam: { title: "DELF 模擬考", passage: "Demain, nous _____ à Paris.", options: ["(A) allons", "(B) irons", "(C) allons aller", "(D) sommes"], answer: 1, tip: "💡 提示：Demain 代表未來式。" }
       },
       de_goethe: {
@@ -278,20 +303,21 @@
 
     let currentLangKey = 'en_toeic';
     let currentVocabIdx = 0;
-    let userProfile = { xp: 150, streak: 6, learnedCount: 20, aiWrongList: [] };
+    let userProfile = { xp: 150, streak: 6, learnedCount: 20, aiWrongList: [], userName: "冒險者 (已登入)" };
 
     function saveStore() {
-      localStorage.setItem('yuyan_profile_v2', JSON.stringify(userProfile));
-      localStorage.setItem('yuyan_lang_v2', currentLangKey);
+      localStorage.setItem('yuyan_profile_v3', JSON.stringify(userProfile));
+      localStorage.setItem('yuyan_lang_v3', currentLangKey);
     }
     function loadStore() {
-      const s = localStorage.getItem('yuyan_profile_v2');
+      const s = localStorage.getItem('yuyan_profile_v3');
       if (s) userProfile = JSON.parse(s);
-      const l = localStorage.getItem('yuyan_lang_v2');
+      const l = localStorage.getItem('yuyan_lang_v3');
       if (l && appDatabase[l]) {
         currentLangKey = l;
         document.getElementById('lang-select').value = l;
       }
+      document.getElementById('login-user-name').innerText = userProfile.userName;
     }
 
     window.onload = () => { loadStore(); renderAll(); };
@@ -310,11 +336,20 @@
       renderAll();
     }
 
-    function switchTab(id) {
+    function switchTab(id, btn) {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      event.target.classList.add('active');
+      btn.classList.add('active');
       document.getElementById('tab-' + id).classList.add('active');
+    }
+
+    function toggleLogin() {
+      const name = prompt("請輸入您的冒險者暱稱：", userProfile.userName);
+      if (name) {
+        userProfile.userName = name;
+        document.getElementById('login-user-name').innerText = name;
+        saveStore();
+      }
     }
 
     function renderVocab() {
@@ -357,29 +392,29 @@
         userProfile.learnedCount += 1;
         saveStore();
         updateUI();
-        alert(`🌟 收藏成功「${w}」! +5 XP`);
+        alert(`🌸 成功收集「${w}」！ +5 XP`);
       } else {
-        alert('已經在筆記中了！');
+        alert('這個生字已經在筆記中了喔！');
       }
     }
 
     function completeTodo(el, xp) {
-      el.parentElement.style.opacity = '0.4';
+      el.parentElement.style.opacity = '0.5';
       el.style.pointerEvents = 'none';
       userProfile.xp += xp;
       saveStore();
       updateUI();
-      alert(`🎉 達成目標！ +${xp} XP`);
+      alert(`✨ 達成微目標！ +${xp} XP`);
     }
 
     function openExamModal() {
       const ex = appDatabase[currentLangKey].exam;
-      let html = `<div style="margin-bottom:8px; font-weight:bold;">${ex.title}</div>`;
-      html += `<div style="font-style:italic; margin-bottom:8px;">${ex.passage}</div>`;
+      let html = `<div style="margin-bottom:6px; font-weight:bold;">${ex.title}</div>`;
+      html += `<div style="font-style:italic; margin-bottom:6px;">${ex.passage}</div>`;
       ex.options.forEach((opt, idx) => {
-        html += `<button class="game-card-btn" style="width:100%; margin-top:6px; text-align:left; padding:8px;" onclick="checkExam(${idx}, ${ex.answer}, '${ex.tip}')">${opt}</button>`;
+        html += `<button class="game-card-btn" style="width:100%; margin-top:4px; text-align:left; padding:8px;" onclick="checkExam(${idx}, ${ex.answer}, '${ex.tip}')">${opt}</button>`;
       });
-      html += `<div id="exam-feedback" style="margin-top:8px; font-weight:bold; display:none;"></div>`;
+      html += `<div id="exam-feedback" style="margin-top:6px; font-weight:bold; display:none;"></div>`;
       document.getElementById('exam-quiz-content').innerHTML = html;
       document.getElementById('exam-modal').classList.add('active');
     }
@@ -388,12 +423,12 @@
       const fb = document.getElementById('exam-feedback');
       fb.style.display = 'block';
       if (s === ans) {
-        fb.style.color = '#27ae60';
-        fb.innerHTML = `✅ 答對了！<br>${tip}`;
+        fb.style.color = '#2d6a4f';
+        fb.innerHTML = `✅ 答對了好棒！<br>${tip}`;
         userProfile.xp += 15;
       } else {
-        fb.style.color = '#c0392b';
-        fb.innerHTML = `❌ 答錯了。<br>${tip}`;
+        fb.style.color = '#990022';
+        fb.innerHTML = `❌ 沒關係，再接再厲。<br>${tip}`;
       }
       saveStore();
       updateUI();
@@ -406,7 +441,7 @@
     function showGameArea(t, d, xp) {
       const area = document.getElementById('game-active-area');
       area.style.display = 'block';
-      area.innerHTML = `<div style="background:var(--bg-color); padding:10px; border-radius:10px; text-align:center;"><b style="color:var(--secondary);">${t}</b><p style="font-size:12px; margin:4px 0;">${d}</p><button class="btn-action" onclick="claimGame(${xp})">領取 +${xp} XP</button></div>`;
+      area.innerHTML = `<div style="background:var(--bg-color); padding:10px; border-radius:12px; text-align:center;"><b style="color:var(--primary);">${t}</b><p style="font-size:11px; margin:4px 0;">${d}</p><button class="btn-action" style="background:var(--primary); color:white;" onclick="claimGame(${xp})">領取 +${xp} XP</button></div>`;
     }
 
     function claimGame(xp) {
@@ -424,7 +459,7 @@
 
       const list = document.getElementById('ai-wrong-list');
       if (userProfile.aiWrongList.length === 0) {
-        list.innerHTML = '目前尚無筆記紀錄！';
+        list.innerHTML = '目前尚無筆記紀錄，快去圖書館收集吧！';
       } else {
         list.innerHTML = '';
         userProfile.aiWrongList.forEach((i, idx) => {
