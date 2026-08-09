@@ -7,8 +7,11 @@ const langData = {
   es: { levels: ["DELE A1", "DELE A2", "DELE B1"], pass: 60, time: 2700 }
 };
 
-let userState = JSON.parse(localStorage.getItem('user_lang_state_v2')) || {
-  ja: 0, ko: 0, en: 0, fr: 0, de: 0, es: 0, xp: 0
+// 永久學習紀錄結構
+let userState = JSON.parse(localStorage.getItem('user_lang_learning_data_v3')) || {
+  progress: { ja: 0, ko: 0, en: 0, fr: 0, de: 0, es: 0 },
+  xp: 0,
+  historyLogs: [] // 記錄每一次的考試與練習紀錄
 };
 
 let currentLang = 'ja';
@@ -29,6 +32,7 @@ async function init() {
     bindEvents();
     renderPath();
     updateUI();
+    renderHistoryLogs();
   } catch(e) { console.error("Data load err:", e); }
 }
 
@@ -42,6 +46,7 @@ function bindEvents() {
   document.getElementById('tab-path').onclick = () => showTab('path');
   document.getElementById('tab-game').onclick = () => showTab('game');
   document.getElementById('tab-exam').onclick = () => { showTab('exam'); updateExamIntro(); };
+  document.getElementById('tab-record').onclick = () => { showTab('record'); renderHistoryLogs(); };
 
   document.getElementById('btn-play-match').onclick = startMatchGame;
   document.getElementById('btn-close-game').onclick = () => {
@@ -61,6 +66,11 @@ function bindEvents() {
     const qList = getQuestions();
     if(currentQIdx < qList.length - 1) { currentQIdx++; renderQuestion(); }
   };
+
+  // 進度備份與還原事件
+  document.getElementById('btn-export-data').onclick = exportProgress;
+  document.getElementById('btn-import-data').onclick = () => document.getElementById('file-input').click();
+  document.getElementById('file-input').onchange = importProgress;
 }
 
 function showTab(name) {
@@ -75,7 +85,7 @@ function renderPath() {
   const container = document.getElementById('map-nodes');
   container.innerHTML = '';
   const lvls = langData[currentLang].levels;
-  const currentUnlocked = userState[currentLang];
+  const currentUnlocked = userState.progress[currentLang] || 0;
 
   document.getElementById('current-lvl-badge').innerText = lvls[currentUnlocked];
 
@@ -91,7 +101,7 @@ function renderPath() {
 
     btn.onclick = () => {
       if(idx <= currentUnlocked) {
-        alert(`您正在學習 [${lvl}]。請進入「擬真檢定」測驗合格，以解鎖下一級！`);
+        alert(`您當前進行至 [${lvl}]。請進入「擬真檢定」測驗合格以晉級！`);
       } else {
         alert(`🔒 該級別鎖定中！請先參加並通過前一級別的正式擬真檢定。`);
       }
@@ -146,7 +156,7 @@ function startMatchGame() {
 
 function updateExamIntro() {
   const cfg = langData[currentLang];
-  const curLvlName = cfg.levels[userState[currentLang]];
+  const curLvlName = cfg.levels[userState.progress[currentLang] || 0];
   document.getElementById('exam-title').innerText = `${curLvlName} 官方擬真測驗`;
   document.getElementById('exam-desc').innerText = `⏱️ 時間：${Math.floor(cfg.time/60)} 分鐘 | 合格門檻：${cfg.pass} 分`;
 }
@@ -221,25 +231,64 @@ function submitExam() {
 
   const score = Math.round((correct / (qList.length || 1)) * 100);
   const passScore = langData[currentLang].pass;
+  const curLvlName = langData[currentLang].levels[userState.progress[currentLang] || 0];
 
   document.getElementById('exam-active-box').classList.add('hidden');
   document.getElementById('exam-result-card').classList.remove('hidden');
   document.getElementById('res-score').innerText = `${score} 分`;
 
-  if (score >= passScore) {
+  const isPassed = score >= passScore;
+
+  // 寫入學習歷程 Log
+  const logEntry = {
+    date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+    lang: currentLang.toUpperCase(),
+    level: curLvlName,
+    score: score,
+    passed: isPassed
+  };
+  userState.historyLogs.unshift(logEntry);
+
+  if (isPassed) {
     document.getElementById('res-icon').innerText = '🎓';
     document.getElementById('res-title').innerText = '合格！成功晉級！';
-    document.getElementById('res-msg').innerText = `恭喜獲得 ${score} 分，已成功解鎖下一個高級別！`;
-    if (userState[currentLang] < langData[currentLang].levels.length - 1) {
-      userState[currentLang]++;
-      saveState();
-      renderPath();
+    document.getElementById('res-msg').innerText = `恭喜獲得 ${score} 分，已解鎖下一階段學習！`;
+    if ((userState.progress[currentLang] || 0) < langData[currentLang].levels.length - 1) {
+      userState.progress[currentLang]++;
     }
   } else {
     document.getElementById('res-icon').innerText = '💪';
     document.getElementById('res-title').innerText = '未達合格門檻';
-    document.getElementById('res-msg').innerText = `得分 ${score} 分 (門檻 ${passScore} 分)，再複習一下吧！`;
+    document.getElementById('res-msg').innerText = `得分 ${score} 分 (合格標準 ${passScore} 分)，再試一次！`;
   }
+
+  saveState();
+  renderPath();
+}
+
+function renderHistoryLogs() {
+  const list = document.getElementById('history-log-list');
+  list.innerHTML = '';
+
+  if (!userState.historyLogs || userState.historyLogs.length === 0) {
+    list.innerHTML = '<li class="empty-msg">尚無考試紀錄，快去挑戰擬真檢定吧！</li>';
+    return;
+  }
+
+  userState.historyLogs.forEach(log => {
+    const li = document.createElement('li');
+    li.className = `log-item ${log.passed ? 'pass' : 'fail'}`;
+    li.innerHTML = `
+      <div class="log-info">
+        <strong>[${log.lang}] ${log.level}</strong>
+        <span class="log-date">${log.date}</span>
+      </div>
+      <div class="log-score ${log.passed ? 'text-pass' : 'text-fail'}">
+        ${log.score} 分 (${log.passed ? '合格' : '不合格'})
+      </div>
+    `;
+    list.appendChild(li);
+  });
 }
 
 function updateUI() {
@@ -248,7 +297,38 @@ function updateUI() {
 }
 
 function saveState() {
-  localStorage.setItem('user_lang_state_v2', JSON.stringify(userState));
+  localStorage.setItem('user_lang_learning_data_v3', JSON.stringify(userState));
+  document.getElementById('sync-status').innerText = '✅ 進度已自動保存';
+}
+
+function exportProgress() {
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(userState));
+  const downloadAnchor = document.createElement('a');
+  downloadAnchor.setAttribute("href", dataStr);
+  downloadAnchor.setAttribute("download", `language_app_backup_${new Date().toISOString().slice(0,10)}.json`);
+  document.body.appendChild(downloadAnchor);
+  downloadAnchor.click();
+  downloadAnchor.remove();
+}
+
+function importProgress(e) {
+  const fileReader = new FileReader();
+  fileReader.onload = function(event) {
+    try {
+      const importedData = JSON.parse(event.target.result);
+      if (importedData.progress) {
+        userState = importedData;
+        saveState();
+        updateUI();
+        renderPath();
+        renderHistoryLogs();
+        alert("🎉 進度讀取成功！已恢復您的所有學習紀錄。");
+      }
+    } catch(err) {
+      alert("❌ 讀取檔案失敗，請確認是否為正確的備份檔。");
+    }
+  };
+  fileReader.readAsText(e.target.files[0]);
 }
 
 window.onload = init;
