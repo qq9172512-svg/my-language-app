@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>語研大冒險 - Language Adventure (Smart Coach Edition)</title>
+  <title>語研大冒險 - Language Adventure (Smart Library Edition)</title>
   <style>
     :root {
       --bg-color: #f7f9fa;
@@ -44,6 +44,13 @@
     .exam-card { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #ffffff 0%, #f4f9f9 100%); border-left: 5px solid var(--primary); }
     .btn-action { background: var(--primary); color: white; border: none; padding: 8px 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
     .btn-action:hover { background: var(--primary-hover); }
+
+    /* 圖書館文章卡片與閱讀器 */
+    .lib-article-card { background: linear-gradient(135deg, #ffffff 0%, #fcf8f2 100%); border-left: 5px solid var(--accent-pink); cursor: pointer; transition: 0.2s; }
+    .lib-article-card:hover { transform: translateY(-2px); }
+    .highlight-vocab { background-color: #fff9c4; border-bottom: 2px dashed #fbc02d; cursor: pointer; padding: 0 2px; font-weight: bold; }
+    .reader-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 150; display: none; flex-direction: column; padding: 16px; overflow-y: auto; }
+    .reader-modal.active { display: flex; }
 
     /* 每日微目標清單 */
     .todo-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed var(--border-color); font-size: 13px; }
@@ -103,7 +110,6 @@
 
     <!-- TAB 1: 學習大廳 & 智慧備考日曆 -->
     <section id="tab-learn" class="tab-page active">
-      <!-- 智慧衝刺計畫看板 -->
       <div class="card" style="background: linear-gradient(135deg, #e0f7fa 0%, #e8f4f8 100%); border: 1.5px solid #b2ebf2;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
           <h3 style="font-size:14px; color:#006064;">📅 今日備考微目標 (Smart Plan)</h3>
@@ -111,35 +117,28 @@
         </div>
         <div id="daily-todo-list">
           <div class="todo-item">
-            <span>✅ 完成 1 回全真閱讀測驗</span>
+            <span>✅ 完成 1 篇圖書館沉浸閱讀</span>
             <span style="color:var(--text-muted);">已完成</span>
           </div>
           <div class="todo-item">
             <span>🔲 背誦 20 個高頻檢定單字</span>
             <span class="todo-check" onclick="completeTodo(this)">⭕ 點擊完成</span>
           </div>
-          <div class="todo-item">
-            <span>🔲 AI 錯題循環複習 (0 題待複習)</span>
-            <span style="color:var(--text-muted);">極佳</span>
-          </div>
         </div>
       </div>
 
       <div class="segmented-control">
         <button class="segment-btn active" onclick="switchLearnSubTab('exam')">🎯 全真檢定考場</button>
-        <button class="segment-btn" onclick="switchLearnSubTab('base')">🌱 基礎發音與句型</button>
+        <button class="segment-btn" onclick="switchLearnSubTab('lib')">📚 智慧外語圖書館</button>
       </div>
 
       <div id="sub-learn-exam">
         <div id="exam-list-container"></div>
       </div>
 
-      <div id="sub-learn-base" style="display: none;">
-        <div class="card">
-          <h3>🎧 聽力跟讀 (Shadowing) 與發音指導</h3>
-          <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">點擊下方按鈕進行慢速跟讀訓練，突破聽力盲點</p>
-          <div id="shadowing-box" style="margin-top: 10px;"></div>
-        </div>
+      <div id="sub-learn-lib" style="display: none;">
+        <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px;">💡 系統會根據你的檢定進度自動推薦文章。點擊即可進行盲聽、閱讀，並自動標註核心難字！</p>
+        <div id="library-list-container"></div>
       </div>
     </section>
 
@@ -174,7 +173,7 @@
       </div>
 
       <div class="srs-buttons">
-        <button class="srs-btn srs-hard" onclick="rateSRS(1)">🔴 有點難 (排入 AI 錯題迴圈)</button>
+        <button class="srs-btn srs-hard" onclick="rateSRS(1)">🔴 有點難 (收錄至生字筆記)</button>
         <button class="srs-btn srs-good" onclick="rateSRS(3)">🟡 還記得</button>
         <button class="srs-btn srs-easy" onclick="rateSRS(5)">🟢 超簡單</button>
       </div>
@@ -191,22 +190,22 @@
       <div id="game-board" class="card" style="display: none;"></div>
     </section>
 
-    <!-- TAB 4: 個人中心與 AI 智慧錯題本 -->
+    <!-- TAB 4: 個人中心與生字筆記 -->
     <section id="tab-profile" class="tab-page">
       <div class="card">
         <h3>📊 備考戰力分析</h3>
         <div style="display: flex; justify-content: space-around; margin-top: 12px; text-align: center;">
           <div><div style="font-size: 18px; font-weight: bold; color: var(--primary);" id="prof-xp">320</div><div style="font-size: 11px; color: var(--text-muted);">總 XP</div></div>
           <div><div style="font-size: 18px; font-weight: bold; color: var(--accent-pink);" id="prof-streak">5 天</div><div style="font-size: 11px; color: var(--text-muted);">連續登入</div></div>
-          <div><div style="font-size: 18px; font-weight: bold; color: #e74c3c;" id="prof-wrong-count">0</div><div style="font-size: 11px; color: var(--text-muted);">AI 錯題待複習</div></div>
+          <div><div style="font-size: 18px; font-weight: bold; color: #e74c3c;" id="prof-wrong-count">0</div><div style="font-size: 11px; color: var(--text-muted);">圖書館生字標註</div></div>
         </div>
       </div>
 
       <div class="card">
-        <h3>🧠 AI 智慧錯題迴圈清單</h3>
-        <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">系統會依據間隔記憶演算法，自動挑選你最容易答錯的題目進行強化特訓。</p>
+        <h3>📖 圖書館生字/錯題筆記本</h3>
+        <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">你在文章中點擊或答錯的字詞會自動匯集在此。</p>
         <div id="ai-wrong-list" style="margin-top: 10px; font-size: 12px; color: var(--text-muted);">
-          目前沒有錯題，表現完美！
+          目前尚無筆記單字，快去圖書館閱讀文章吧！
         </div>
       </div>
     </section>
@@ -221,6 +220,24 @@
     </div>
     <div id="exam-quiz-content"></div>
     <button class="btn-action" style="background: #e74c3c; margin-top: auto;" onclick="closeExamModal()">結束並交卷</button>
+  </div>
+
+  <!-- 智慧圖書館文章閱讀 Reader Modal -->
+  <div class="reader-modal" id="reader-modal">
+    <div class="exam-header">
+      <h3 id="reader-title" style="font-size: 14px;">文章閱讀</h3>
+      <button class="btn-action" style="background: var(--text-muted); padding: 4px 10px; font-size: 11px;" onclick="closeReaderModal()">關閉文章</button>
+    </div>
+    <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+      <button class="btn-action" style="flex:1;" onclick="speakCurrentArticle()">🔊 朗讀整篇文章 (聽力特訓)</button>
+    </div>
+    <div class="card" style="flex:1; overflow-y:auto; line-height: 1.8; font-size: 14px;" id="reader-body">
+      <!-- 動態載入文章內容與標註 -->
+    </div>
+    <div class="card" style="background: #fdfefe; margin-top: 8px;">
+      <div style="font-weight: bold; font-size: 12px; color: var(--primary-hover); margin-bottom: 4px;">📝 中文對照與解析</div>
+      <p id="reader-translation" style="font-size: 12px; color: var(--text-muted);">請點選上方按鈕閱讀文章。</p>
+    </div>
   </div>
 
   <!-- 底部導覽列 -->
@@ -255,8 +272,21 @@ const appDatabase = {
         ]
       }
     ],
-    shadowingSentences: [
-      { en: 'Could you please forward the revised contract?', zh: '能否請您轉發修改後的合約？' }
+    library: [
+      {
+        id: 'lib_1',
+        title: '📈 企業財報發布與市場反應 (Business Report)',
+        level: 'TOEIC 750+',
+        rawText: 'Global tech enterprise Apex Corp announced its quarterly revenue today, exceeding Wall Street projections. Analysts attribute this robust growth to the successful launch of their automated logistics software. Consequently, corporate shares surged by 4.5% in afternoon trading.',
+        translation: '全球科技企業 Apex 公司今天公布了季度營收，超越華爾街預期。分析師將此強勁成長歸因於其自動化物流軟體的成功推出。因此，公司股票在午盤交易中飆升了 4.5%。',
+        vocabNotes: [
+          { word: 'exceeding', meaning: '超過、勝過' },
+          { word: 'projections', meaning: '預測、預估值' },
+          { word: 'attribute', meaning: '把…歸因於' },
+          { word: 'robust', meaning: '強健的、強勁的' },
+          { word: 'surged', meaning: '急遽上升、飆升' }
+        ]
+      }
     ],
     vocabs: [
       { word: 'Implement', phonetic: '/ˈɪm.plə.ment/', pos: '動詞 (v.)', meaning: '實施；執行', level: 'TOEIC 750+', exEn: 'We will implement the plan.', exZh: '我們將執行該計畫。' },
@@ -282,8 +312,20 @@ const appDatabase = {
         ]
       }
     ],
-    shadowingSentences: [
-      { en: '資料を確認していただけますか。', zh: '可以請您確認一下資料嗎？' }
+    library: [
+      {
+        id: 'jlpt_lib_1',
+        title: '🚆 日本的遠距工作與通勤文化變遷',
+        level: 'JLPT N2 閱讀特訓',
+        rawText: '近年のテレワークの普及に伴い、都市部の満員電車が緩和される傾向にある。しかし、企業によっては対面コミュニケーションの重要性を重視し、出社回帰の動きも見られている。',
+        translation: '近年隨著遠距工作的普及，都市擁擠的電車有緩解的傾向。然而，根據企業的不同，也有重視面對面交流的重要性、回歸實體辦公的趨勢。',
+        vocabNotes: [
+          { word: '普及', meaning: '普及、廣泛流傳' },
+          { word: '緩和', meaning: '緩和、減輕' },
+          { word: '重視', meaning: '重視' },
+          { word: '回帰', meaning: '回歸、返回' }
+        ]
+      }
     ],
     vocabs: [
       { word: '検討', phonetic: 'けんとう', pos: '名詞/サ變', meaning: '研討；檢討', level: 'JLPT N2', exEn: '前向きに検討します。', exZh: '會積極研討。' }
@@ -295,6 +337,7 @@ let currentLangKey = 'en_toeic';
 let currentVocabIdx = 0;
 let userProfile = { xp: 320, streak: 5, aiWrongList: [] };
 let examTimerInterval = null;
+let activeArticleText = '';
 
 function init() { renderData(); }
 
@@ -311,11 +354,11 @@ function switchLearnSubTab(type) {
   if (type === 'exam') {
     btns[0].classList.add('active');
     document.getElementById('sub-learn-exam').style.display = 'block';
-    document.getElementById('sub-learn-base').style.display = 'none';
+    document.getElementById('sub-learn-lib').style.display = 'none';
   } else {
     btns[1].classList.add('active');
     document.getElementById('sub-learn-exam').style.display = 'none';
-    document.getElementById('sub-learn-base').style.display = 'block';
+    document.getElementById('sub-learn-lib').style.display = 'block';
   }
 }
 
@@ -343,20 +386,53 @@ function renderData() {
     `;
   });
 
-  // 渲染跟讀跟句子
-  const sb = document.getElementById('shadowing-box');
-  sb.innerHTML = '';
-  db.shadowingSentences.forEach(s => {
-    sb.innerHTML += `
-      <div style="padding:8px 0; border-bottom:1px dashed var(--border-color);">
-        <div style="font-weight:bold; font-size:13px; color:var(--primary-hover);">${s.en}</div>
-        <div style="font-size:11px; color:var(--text-muted);">${s.zh}</div>
-        <button class="btn-action" style="padding:4px 8px; font-size:11px; margin-top:6px;" onclick="speakText('${s.en}')">🔊 播放原音跟讀</button>
+  // 渲染圖書館文章列表
+  const libContainer = document.getElementById('library-list-container');
+  libContainer.innerHTML = '';
+  db.library.forEach(art => {
+    libContainer.innerHTML += `
+      <div class="card lib-article-card" onclick="openReaderModal('${art.id}')">
+        <span style="font-size:10px; font-weight:bold; background:#e8f4f8; color:#0277bd; padding:2px 8px; border-radius:6px;">${art.level}</span>
+        <h3 style="font-size:14px; margin:6px 0 2px 0;">${art.title}</h3>
+        <p style="font-size:11px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${art.rawText}</p>
       </div>
     `;
   });
 
   renderVocabCard();
+}
+
+function openReaderModal(artId) {
+  const db = appDatabase[currentLangKey] || appDatabase['en_toeic'];
+  const art = db.library.find(a => a.id === artId);
+  document.getElementById('reader-title').innerText = art.title;
+  activeArticleText = art.rawText;
+  document.getElementById('reader-translation').innerText = art.translation;
+
+  // 自動將文章內的重點單字加工加上標註
+  let processedText = art.rawText;
+  art.vocabNotes.forEach(v => {
+    const regex = new RegExp(`(${v.word})`, 'gi');
+    processedText = processedText.replace(regex, `<span class="highlight-vocab" onclick="addNoteToProfile('${v.word}', '${v.meaning}')">$1 (📌 ${v.meaning})</span>`);
+  });
+
+  document.getElementById('reader-body').innerHTML = processedText;
+  document.getElementById('reader-modal').classList.add('active');
+}
+
+function closeReaderModal() {
+  document.getElementById('reader-modal').classList.remove('active');
+}
+
+function speakCurrentArticle() {
+  speakText(activeArticleText);
+}
+
+function addNoteToProfile(word, meaning) {
+  userProfile.aiWrongList.push({ word: `[圖書館生字] ${word}`, meaning: meaning });
+  userProfile.xp += 5;
+  updateUI();
+  alert(`✅ 已成功將「${word} (${meaning})」收入你的個人生字筆記本！+5 XP`);
 }
 
 function renderVocabCard() {
@@ -390,7 +466,6 @@ function speakText(txt, rate = 1.0) {
 
 function rateSRS(score) {
   if (score === 1) {
-    // 放入 AI 錯題迴圈
     const db = appDatabase[currentLangKey] || appDatabase['en_toeic'];
     userProfile.aiWrongList.push(db.vocabs[currentVocabIdx]);
   }
@@ -498,7 +573,7 @@ function updateUI() {
 
   const wl = document.getElementById('ai-wrong-list');
   if (userProfile.aiWrongList.length > 0) {
-    wl.innerHTML = userProfile.aiWrongList.map(w => `<div style="padding:4px 0; border-bottom:1px solid var(--border-color);">📌 ${w.word || '錯題'}</div>`).join('');
+    wl.innerHTML = userProfile.aiWrongList.map(w => `<div style="padding:4px 0; border-bottom:1px solid var(--border-color);">📌 ${w.word || '生字'} : ${w.meaning || ''}</div>`).join('');
   }
 }
 
