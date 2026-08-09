@@ -147,7 +147,7 @@
     <!-- 1. 學習大廳 -->
     <div id="tab-hub" class="tab-content active">
       <div class="card">
-        <h3 style="margin-bottom: 12px; font-size: 16px;">📅 今日真實微目標 (2026-08-09)</h3>
+        <h3 style="margin-bottom: 12px; font-size: 16px;">📅 今日真實微目標</h3>
         <div class="todo-list">
           <div class="todo-item">
             <span>📖 閱讀今日外語精選長篇短文</span>
@@ -161,7 +161,7 @@
       </div>
 
       <div class="card">
-        <h3 style="margin-bottom: 10px; font-size: 16px;">📚 智慧外語圖書館 (雲端自動同步)</h3>
+        <h3 style="margin-bottom: 10px; font-size: 16px;">📚 智慧外語圖書館 (點擊藍字可收集生字)</h3>
         <div class="article-box" id="library-article-box">
           <!-- 動態載入文章 -->
         </div>
@@ -216,9 +216,9 @@
       <div class="card">
         <h3 style="margin-bottom: 12px;">👤 備考戰力與成就徽章</h3>
         <div class="badges-grid" id="badge-container">
-          <div class="badge unlocked" id="ach-1">🌟 初次冒險 (XP >= 50)</div>
-          <div class="badge" id="ach-2">📝 錯題征服者 (收藏3個生字)</div>
-          <div class="badge" id="ach-3">🏆 全真考場MVP</div>
+          <div class="badge" id="ach-1">🌟 初次冒險 (XP >= 50)</div>
+          <div class="badge" id="ach-2">📝 錯題征服者 (收藏1個生字)</div>
+          <div class="badge" id="ach-3">🏆 全真考場MVP (XP >= 100)</div>
         </div>
         <h4 style="margin-top: 20px; margin-bottom: 8px; font-size: 14px;">📖 個人錯題與智慧生字筆記本</h4>
         <div id="ai-wrong-list" style="background:var(--bg-color); padding: 12px; border-radius: 12px; border:1px solid var(--border-color); font-size: 13px; max-height: 180px; overflow-y: auto;">
@@ -242,7 +242,6 @@
 
   <!-- JavaScript 完整核心邏輯 -->
   <script>
-    // 雲端自動同步題庫結構 (支援 6 大語言)
     const appDatabase = {
       en_toeic: {
         title: "🇬🇧 英語 (TOEIC)",
@@ -273,7 +272,7 @@
         vocabs: [
           { word: "挑戦 (ちょうせん)", phonetic: "/chōsen/", meaning: "挑戰", example: "新しいことに挑戦する。" },
           { word: "環境 (かんきょう)", phonetic: "/kankyō/", meaning: "環境", example: "環境を守ることが大切だ。" },
-          { word: "連絡 (れんらく)", phonetic: "/renraku/", meaning: "聯絡", example:してください: "後で連絡してください。" }
+          { word: "連絡 (れんらく)", phonetic: "/renraku/", meaning: "聯絡", example: "後で連絡してください。" }
         ],
         article: {
           title: "日本文化と新しい生活",
@@ -392,9 +391,7 @@
 
     let currentLangKey = 'en_toeic';
     let currentVocabIdx = 0;
-    let examTimerInterval = null;
 
-    // 使用者資料模型 (支援 LocalStorage 持久化)
     let userProfile = {
       xp: 120,
       streak: 5,
@@ -417,7 +414,6 @@
       }
     }
 
-    // 初始化執行
     window.onload = function() {
       loadFromLocalStorage();
       renderAll();
@@ -436,7 +432,6 @@
       renderAll();
     }
 
-    // 頁籤切換
     function switchTab(tabId) {
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
@@ -456,7 +451,6 @@
       }
     }
 
-    // 渲染圖書館文章
     function renderLibrary() {
       const db = appDatabase[currentLangKey];
       const box = document.getElementById('library-article-box');
@@ -466,9 +460,8 @@
       `;
     }
 
-    // 收藏生字
     function collectWord(word, meaning) {
-      if (!userProfile.aiWrongList.some(item => item.word === word)) {
+      if (!userProfile.aiWrongList.some(item => item.word.includes(word))) {
         userProfile.aiWrongList.push({ word: `[圖書館收藏] ${word}`, meaning: meaning });
         userProfile.xp += 5;
         userProfile.learnedCount += 1;
@@ -480,7 +473,6 @@
       }
     }
 
-    // 渲染 3D 單字卡
     function renderVocabCard() {
       const db = appDatabase[currentLangKey];
       const v = db.vocabs[currentVocabIdx];
@@ -495,7 +487,6 @@
       document.getElementById('vocab-card').classList.toggle('flipped');
     }
 
-    // TTS 發音引擎
     function speakWord(rate = 1.0) {
       if (!('speechSynthesis' in window)) {
         alert('您的瀏覽器不支援語音功能');
@@ -515,7 +506,6 @@
       window.speechSynthesis.speak(utter);
     }
 
-    // SRS 評分
     function rateSRS(score) {
       const db = appDatabase[currentLangKey];
       const v = db.vocabs[currentVocabIdx];
@@ -534,7 +524,6 @@
       renderVocabCard();
     }
 
-    // 微目標完成
     function completeTodo(el, xpReward) {
       el.parentElement.style.opacity = '0.5';
       el.style.pointerEvents = 'none';
@@ -545,7 +534,6 @@
       alert(`🎉 恭喜完成微目標！ +${xpReward} XP`);
     }
 
-    // 模擬考控制
     function openExamModal(examId) {
       const db = appDatabase[currentLangKey];
       const exam = db.exams[0];
@@ -602,51 +590,27 @@
       alert('🏆 測驗完成！結算獎勵 +10 XP');
     }
 
-    // 遊戲中心擴充實作
     function startMatchGame() {
-      const area = document.getElementById('game-active-area');
-      area.style.display = 'block';
-      area.innerHTML = `
-        <div style="background:var(--bg-color); padding:15px; border-radius:12px; border:1px solid var(--border-color); text-align:center;">
-          <h4 style="color:var(--secondary); margin-bottom:8px;">🧩 配對挑戰成功！</h4>
-          <p style="font-size:13px; margin-bottom:10px;">您已成功完成極速記憶配對訓練。</p>
-          <button class="btn-action" onclick="claimGameReward(15)">領取 +15 XP 獎勵</button>
-        </div>
-      `;
+      showGameArea('🧩 配對挑戰成功！', '您已成功完成極速記憶配對訓練。', 15);
     }
-
     function startSentenceGame() {
-      const area = document.getElementById('game-active-area');
-      area.style.display = 'block';
-      area.innerHTML = `
-        <div style="background:var(--bg-color); padding:15px; border-radius:12px; border:1px solid var(--border-color); text-align:center;">
-          <h4 style="color:var(--primary); margin-bottom:8px;">⚡ 句型重組挑戰完成！</h4>
-          <p style="font-size:13px; margin-bottom:10px;">文法排列邏輯順利通關。</p>
-          <button class="btn-action" onclick="claimGameReward(20)">領取 +20 XP 獎勵</button>
-        </div>
-      `;
+      showGameArea('⚡ 句型重組挑戰完成！', '文法排列邏輯順利通關。', 20);
     }
-
     function startAuditoryGame() {
-      const area = document.getElementById('game-active-area');
-      area.style.display = 'block';
-      area.innerHTML = `
-        <div style="background:var(--bg-color); padding:15px; border-radius:12px; border:1px solid var(--border-color); text-align:center;">
-          <h4 style="color:var(--accent); margin-bottom:8px;">🎧 閃電聽音辨義通關！</h4>
-          <p style="font-size:13px; margin-bottom:10px;">聽力直覺反應敏銳度大幅提升。</p>
-          <button class="btn-action" onclick="claimGameReward(15)">領取 +15 XP 獎勵</button>
-        </div>
-      `;
+      showGameArea('🎧 閃電聽音辨義通關！', '聽力直覺反應敏銳度大幅提升。', 15);
+    }
+    function startPronounceGame() {
+      showGameArea('🗣️ AI 發音跟讀評分過關！', '口說流利度達標，發音完美！', 25);
     }
 
-    function startPronounceGame() {
+    function showGameArea(title, desc, xp) {
       const area = document.getElementById('game-active-area');
       area.style.display = 'block';
       area.innerHTML = `
         <div style="background:var(--bg-color); padding:15px; border-radius:12px; border:1px solid var(--border-color); text-align:center;">
-          <h4 style="color:var(--purple); margin-bottom:8px;">🗣️ AI 發音跟讀評分過關！</h4>
-          <p style="font-size:13px; margin-bottom:10px;">口說流利度達標，發音完美！</p>
-          <button class="btn-action" onclick="claimGameReward(25)">領取 +25 XP 獎勵</button>
+          <h4 style="color:var(--secondary); margin-bottom:8px;">${title}</h4>
+          <p style="font-size:13px; margin-bottom:10px;">${desc}</p>
+          <button class="btn-action" onclick="claimGameReward(${xp})">領取 +${xp} XP 獎勵</button>
         </div>
       `;
     }
@@ -659,7 +623,6 @@
       alert(`✨ 獲得 +${xp} XP 獎勵！`);
     }
 
-    // 介面資料更新與成就判定
     function updateUI() {
       document.getElementById('user-xp').innerText = userProfile.xp;
       document.getElementById('streak-days').innerText = userProfile.streak;
@@ -675,13 +638,11 @@
         });
       }
 
-      // 成就徽章判定
       if (userProfile.xp >= 50) document.getElementById('ach-1').classList.add('unlocked');
       if (userProfile.aiWrongList.length >= 1) document.getElementById('ach-2').classList.add('unlocked');
       if (userProfile.xp >= 100) document.getElementById('ach-3').classList.add('unlocked');
     }
 
-    // 深色模式切換
     function toggleDarkMode() {
       const body = document.body;
       if (body.getAttribute('data-theme') === 'light') {
