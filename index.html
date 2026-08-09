@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>語研大冒險 - 多國語言檢定</title>
-  <link rel="stylesheet" href="style.css?v=2.0">
+  <link rel="stylesheet" href="style.css?v=3.0">
 </head>
 <body>
   <div class="app-container">
-    <!-- 可愛可愛 Header -->
+    <!-- Header -->
     <header class="cute-header">
       <div class="logo">
         <span class="avatar">🐱</span>
@@ -24,13 +24,18 @@
       </select>
     </header>
 
-    <!-- 玩家數據卡 -->
+    <!-- 玩家數據卡與學習記錄 -->
     <div class="user-card">
       <div class="user-row">
         <span id="current-lvl-badge" class="badge">JLPT N5 (當前目標)</span>
         <span class="xp-text">✨ <strong id="xp-val">0</strong> XP</span>
       </div>
       <div class="p-bar"><div id="p-fill" class="p-fill" style="width: 10%;"></div></div>
+      <div class="sync-bar">
+        <span id="sync-status">💾 進度已自動保存至本地</span>
+        <button id="btn-export-data" class="mini-btn">📥 備份進度</button>
+        <button id="btn-import-data" class="mini-btn">📤 讀取進度</button>
+      </div>
     </div>
 
     <!-- 主選單頁籤 -->
@@ -38,13 +43,12 @@
       <button id="tab-path" class="tab-btn active">🗺️ 闖關地圖</button>
       <button id="tab-game" class="tab-btn">🎮 互動遊戲</button>
       <button id="tab-exam" class="tab-btn">⏱️ 擬真檢定</button>
+      <button id="tab-record" class="tab-btn">📊 學習歷程</button>
     </nav>
 
     <!-- 1. 闖關地圖 -->
     <section id="path-sec" class="sec-box">
-      <div class="map-path" id="map-nodes">
-        <!-- 動態產生關卡按鈕 -->
-      </div>
+      <div class="map-path" id="map-nodes"></div>
     </section>
 
     <!-- 2. 多元遊戲區 -->
@@ -53,14 +57,13 @@
         <button class="g-card" id="btn-play-match">
           <span class="g-icon">🧩</span>
           <h3>單字連連看</h3>
-          <p>配對日/韓/英單字與中文，提升反射神經！</p>
+          <p>配對語言單字與中文，提升反射神經！</p>
         </button>
       </div>
 
-      <!-- 連連看畫布 -->
       <div id="game-board" class="game-board hidden">
         <div class="gb-header">
-          <h3>🧩 點擊卡片進行連線配對</h3>
+          <h3>🧩 單字連線配對</h3>
           <button id="btn-close-game" class="c-btn sm">結束</button>
         </div>
         <div class="match-grid" id="match-grid"></div>
@@ -71,30 +74,22 @@
     <section id="exam-sec" class="sec-box hidden">
       <div id="exam-start-card" class="exam-card">
         <div class="stamp">OFFICIAL</div>
-        <h2 id="exam-title">JLPT N5 官方模擬測驗</h2>
-        <p id="exam-desc">⏱️ 限時：40 分鐘 | 合格標準：80 分</p>
-        <div class="exam-tip">
-          💡 必須通過本級別檢定測驗，才能解鎖下一階段學習內容！
-        </div>
+        <h2 id="exam-title">官方模擬測驗</h2>
+        <p id="exam-desc">⏱️ 限時測驗 | 通過以解鎖下一關</p>
         <button id="btn-start-exam" class="c-btn primary lg">🚀 開始正式檢定考試</button>
       </div>
 
-      <!-- 考試作答區 -->
       <div id="exam-active-box" class="exam-card hidden">
         <div class="exam-timer-bar">
-          <span id="exam-lvl-title">JLPT N5 測驗中</span>
+          <span id="exam-lvl-title">測驗中</span>
           <span id="clock-display" class="clock">⏱️ 40:00</span>
         </div>
-
-        <!-- 劃卡卡號面板 -->
         <div class="sheet-grid" id="sheet-grid"></div>
-
         <div class="q-box">
           <span id="q-num-tag" class="q-tag">第 1 題</span>
-          <h3 id="q-text">題目載入中...</h3>
+          <h3 id="q-text">載入中...</h3>
           <div id="opt-container" class="opt-list"></div>
         </div>
-
         <div class="exam-ctrls">
           <button id="btn-prev-q" class="c-btn sec">上一題</button>
           <button id="btn-next-q" class="c-btn sec">下一題</button>
@@ -102,7 +97,6 @@
         </div>
       </div>
 
-      <!-- 成績卡 -->
       <div id="exam-result-card" class="exam-card hidden">
         <div id="res-icon" class="res-icon">🎉</div>
         <h2 id="res-title">成績單</h2>
@@ -111,8 +105,19 @@
         <button id="btn-back-map" class="c-btn primary lg">返回闖關地圖</button>
       </div>
     </section>
+
+    <!-- 4. 學習歷程與歷史紀錄紀錄 -->
+    <section id="record-sec" class="sec-box hidden">
+      <div class="record-card">
+        <h3>📜 歷史檢定與挑戰紀錄</h3>
+        <ul id="history-log-list" class="history-list">
+          <li class="empty-msg">尚無考試紀錄，快去挑戰擬真檢定吧！</li>
+        </ul>
+      </div>
+    </section>
   </div>
 
-  <script src="app.js?v=2.0"></script>
+  <input type="file" id="file-input" style="display: none;" accept=".json">
+  <script src="app.js?v=3.0"></script>
 </body>
 </html>
