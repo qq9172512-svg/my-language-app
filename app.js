@@ -1,66 +1,43 @@
-// 🔑 Supabase 連線資訊設定
-const SUPABASE_URL = "https://uKtJ0qD18Q7MkDzf3co0Bg.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_uKtJ0qD18Q7MkDzf3co0Bg_wfoinpqh";
-
-// 初始化 Supabase Client
-const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY) : null;
-
-// 全域狀態管理
+// 全域狀態
 let currentUser = null;
 let currentLang = 'ja';
 let userProfile = { xp: 0, streak_days: 1 };
 let currentCards = [];
 let cardIndex = 0;
 
-// 備用單字庫 (離線或免登入時使用)
-const fallbackVocabs = {
+// 完整內建單字庫 (隨開即用，完全不需要依賴後端即可體驗)
+const vocabsDatabase = {
   ja: [
-    { id: 'ja-1', word: '食べる', reading: 'たべる (taberu)', meaning: '吃 (動詞)', category: '飲食', example_sentence: 'ラーメンを食べます。', example_translation: '我要吃拉麵。' },
-    { id: 'ja-2', word: '飲む', reading: 'のむ (nomu)', meaning: '喝 (動詞)', category: '飲食', example_sentence: '水をおねがいします。', example_translation: '請給我水。' },
-    { id: 'ja-3', word: '行く', reading: 'いく (iku)', meaning: '去 (動詞)', category: '交通', example_sentence: '東京へ行きます。', example_translation: '我要去東京。' },
-    { id: 'ja-4', word: '話す', reading: 'はなす (hanasu)', meaning: '說話 (動詞)', category: '交流', example_sentence: '日本語で話します。', example_translation: '用日語交談。' }
+    { id: 'j1', word: 'こんにちは', reading: 'Konnichiwa', meaning: '你好', category: '問候', example_sentence: '皆さん、こんにちは！', example_translation: '大家你好！' },
+    { id: 'j2', word: 'ありがとう', reading: 'Arigatou', meaning: '謝謝', category: '表達', example_sentence: 'いつもありがとうございます。', example_translation: '一直以來非常感謝你。' },
+    { id: 'j3', word: '美味しい', reading: 'Oishii', meaning: '好吃的', category: '飲食', example_sentence: 'このラーメンはとても美味しいです。', example_translation: '這個拉麵非常好吃。' },
+    { id: 'j4', word: '猫', reading: 'Neko', meaning: '貓咪', category: '動物', example_sentence: '可愛い猫がいます。', example_translation: '有一隻可愛的貓。' },
+    { id: 'j5', word: '勉強', reading: 'Benkyou', meaning: '學習', category: '日常', example_sentence: '毎日日本語を勉強します。', example_translation: '我每天學習日文。' }
   ],
   ko: [
-    { id: 'ko-1', word: '먹다', reading: 'meok-da', meaning: '吃 (動詞)', category: '日常', example_sentence: '밥을 먹어요.', example_translation: '我在吃飯。' },
-    { id: 'ko-2', word: '마시다', reading: 'ma-si-da', meaning: '喝 (動詞)', category: '日常', example_sentence: '커피를 마셔요.', example_translation: '我在喝咖啡。' }
+    { id: 'k1', word: '안녕하세요', reading: 'An-nyeong-ha-se-yo', meaning: '你好', category: '問候', example_sentence: '안녕하세요! 반갑습니다.', example_translation: '你好！很高興認識你。' },
+    { id: 'k2', word: '감사합니다', reading: 'Gam-sa-ham-ni-da', meaning: '謝謝', category: '表達', example_sentence: '도와주셔서 감사합니다.', example_translation: '謝謝你的幫助。' },
+    { id: 'k3', word: '맛있어요', reading: 'Mas-iss-eo-yo', meaning: '好吃', category: '飲食', example_sentence: '한국 음식이 맛있어요.', example_translation: '韓國料理很好吃。' },
+    { id: 'k4', word: '사랑해', reading: 'Sa-rang-hae', meaning: '我愛你', category: '情感', example_sentence: '정말 사랑해요.', example_translation: '真的愛你。' }
   ],
   en: [
-    { id: 'en-1', word: 'Resilient', reading: '/rɪˈzɪl.jənt/', meaning: '有彈性的；堅韌的', category: 'TOEIC高頻', example_sentence: 'She is a resilient leader.', example_translation: '她是一位堅忍不拔的領導者。' },
-    { id: 'en-2', word: 'Innovate', reading: '/ˈɪn.ə.veɪt/', meaning: '創新 (動詞)', category: '職場商務', example_sentence: 'We need to innovate constantly.', example_translation: '我們需要不斷創新。' }
+    { id: 'e1', word: 'Awesome', reading: '/ˈɔː.səm/', meaning: '超棒的', category: '讚美', example_sentence: 'You did an awesome job!', example_translation: '你做得太棒了！' },
+    { id: 'e2', word: 'Delicious', reading: '/dɪˈlɪʃ.əs/', meaning: '美味的', category: '飲食', example_sentence: 'This cake is delicious.', example_translation: '這個蛋糕真美味。' },
+    { id: 'e3', word: 'Adventure', reading: '/ədˈven.tʃər/', meaning: '冒險', category: '日常', example_sentence: 'Welcome to the language adventure!', example_translation: '歡迎來到語言大冒險！' }
   ]
 };
 
-// 1. App 初始化
-async function init() {
+// 1. 初始化
+function init() {
   bindEvents();
-
-  // 預設設為自由模式
-  document.getElementById('user-name').innerText = "自由冒險家";
-  document.getElementById('sync-indicator').innerText = "👤 本地模式";
-
-  if (supabase) {
-    // 自動靜默檢查是否有先前的登入 Session（不會彈窗）
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session?.user) {
-      await onUserLogin(session.user);
-    }
-
-    // 監聽 Auth 狀態轉變
-    supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user) {
-        await onUserLogin(session.user);
-      } else {
-        onUserLogout();
-      }
-    });
-  }
-
-  await loadLanguageData();
+  loadLanguageData();
+  renderMapNodes();
+  updateUI();
 }
 
 // 2. 事件綁定
 function bindEvents() {
-  // 底部 Tab 切換
+  // 底部頁籤切換
   document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.onclick = () => {
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -72,197 +49,101 @@ function bindEvents() {
     };
   });
 
-  // 切換語言
-  document.getElementById('lang-select').onchange = async (e) => {
+  // 切換語言選單
+  document.getElementById('lang-select').onchange = (e) => {
     currentLang = e.target.value;
-    await loadLanguageData();
+    loadLanguageData();
   };
 
-  // ⚙️ 右上角登入/帳號按鈕（主動點擊才跳出彈窗或執行登出）
+  // 右上角設定/登入按鈕
   document.getElementById('btn-logout').onclick = () => {
-    if (currentUser) {
-      if (confirm("確定要登出 Supabase 帳號嗎？")) {
-        if (supabase) supabase.auth.signOut();
-      }
-    } else {
-      // 未登入狀態時，點擊按鈕跳出登入視窗
-      document.getElementById('auth-modal').classList.remove('hidden');
-    }
+    document.getElementById('auth-modal').classList.remove('hidden');
   };
 
-  // 彈窗內的按鈕事件
-  document.getElementById('btn-login').onclick = handleLogin;
-  
-  const closeBtn = document.getElementById('btn-close-modal') || document.getElementById('btn-guest-login');
-  if (closeBtn) {
-    closeBtn.onclick = () => {
-      document.getElementById('auth-modal').classList.add('hidden');
-    };
-  }
+  // 關閉登入視窗
+  document.getElementById('btn-close-modal').onclick = () => {
+    document.getElementById('auth-modal').classList.add('hidden');
+  };
 
-  // 點擊單字卡翻面
+  // 點擊單字卡翻面 (避開發音按鈕)
   document.getElementById('active-card').onclick = (e) => {
     if (e.target.id === 'btn-audio') return;
     document.getElementById('active-card').classList.toggle('flipped');
   };
 
-  // 聽語音 TTS
+  // 發音按鈕 (Web Speech API)
   document.getElementById('btn-audio').onclick = (e) => {
     e.stopPropagation();
     playSpeech();
   };
 
-  // 小遊戲
+  // SRS 記憶評分按鈕綁定
+  document.getElementById('srs-btn-hard').onclick = () => handleSrsRating(1);
+  document.getElementById('srs-btn-good').onclick = () => handleSrsRating(3);
+  document.getElementById('srs-btn-easy').onclick = () => handleSrsRating(5);
+
+  // 開始連連看遊戲
   document.getElementById('btn-start-game').onclick = startMatchGame;
 }
 
-// 3. Supabase 登入處理
-async function handleLogin() {
-  const email = document.getElementById('auth-email').value.trim();
-  const pwd = document.getElementById('auth-pwd').value.trim();
-
-  if (!email || !pwd) {
-    alert("請輸入 Email 與密碼");
-    return;
-  }
-
-  if (!supabase) {
-    alert("Supabase 連線尚未就緒");
-    return;
-  }
-
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password: pwd });
-
-  if (error) {
-    // 登入失敗嘗試自動註冊
-    const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({ email, password: pwd });
-    if (signUpErr) {
-      alert("登入/註冊失敗: " + signUpErr.message);
-    } else {
-      alert("帳號建立成功！已為您自動同步登入。");
-      document.getElementById('auth-modal').classList.add('hidden');
-    }
-  } else {
-    document.getElementById('auth-modal').classList.add('hidden');
-  }
-}
-
-async function onUserLogin(user) {
-  currentUser = user;
-  document.getElementById('auth-modal').classList.add('hidden');
-  document.getElementById('user-name').innerText = user.email.split('@')[0];
-  document.getElementById('prof-email').innerText = user.email;
-  document.getElementById('sync-indicator').innerText = "☁️ 雲端同步中";
-
-  // 讀取/建立雲端 Profile
-  let { data: profile } = await supabase.from('user_profiles').select('*').eq('id', user.id).single();
-  
-  if (!profile) {
-    const newProf = { 
-      id: user.id, 
-      display_name: user.email.split('@')[0], 
-      xp: userProfile.xp || 0, 
-      streak_days: 1 
-    };
-    await supabase.from('user_profiles').insert([newProf]);
-    profile = newProf;
-  }
-
-  userProfile = profile;
-  updateUI();
-}
-
-function onUserLogout() {
-  currentUser = null;
-  userProfile = { xp: 0, streak_days: 1 };
-  document.getElementById('user-name').innerText = "自由冒險家";
-  document.getElementById('prof-email').innerText = "未登入";
-  document.getElementById('sync-indicator').innerText = "👤 本地模式";
-  updateUI();
-}
-
-// 4. 載入單字資料
-async function loadLanguageData() {
-  let vocabs = [];
-
-  if (currentUser && supabase) {
-    const { data, error } = await supabase.from('words_corpus').select('*').eq('lang', currentLang);
-    if (!error && data && data.length > 0) vocabs = data;
-  }
-
-  if (vocabs.length === 0) {
-    vocabs = fallbackVocabs[currentLang] || fallbackVocabs['ja'];
-  }
-
-  currentCards = vocabs;
+// 3. 載入單字數據
+function loadLanguageData() {
+  currentCards = vocabsDatabase[currentLang] || vocabsDatabase['ja'];
   cardIndex = 0;
   renderFlashcard();
-  renderMapNodes();
 }
 
-// 5. 卡片與 SRS 系統
+// 4. 渲染單字卡內容
 function renderFlashcard() {
   if (!currentCards.length) return;
   const item = currentCards[cardIndex];
 
   document.getElementById('active-card').classList.remove('flipped');
-  document.getElementById('card-cat').innerText = item.category || '日常基礎';
+  document.getElementById('card-cat').innerText = item.category;
   document.getElementById('card-word').innerText = item.word;
   document.getElementById('card-reading').innerText = item.reading;
   document.getElementById('card-meaning').innerText = item.meaning;
-  document.getElementById('card-ex-src').innerText = item.example_sentence || '暫無例句';
-  document.getElementById('card-ex-tgt').innerText = item.example_translation || '暫無翻譯';
+  document.getElementById('card-ex-src').innerText = item.example_sentence;
+  document.getElementById('card-ex-tgt').innerText = item.example_translation;
   document.getElementById('srs-pending-count').innerText = currentCards.length - cardIndex;
 }
 
+// 5. 語音朗讀 TTS
 function playSpeech() {
   const item = currentCards[cardIndex];
-  if (!item || !('speechSynthesis' in window)) return;
+  if (!item || !('speechSynthesis' in window)) {
+    alert("您的瀏覽器暫不支援語音合成發音。");
+    return;
+  }
 
+  window.speechSynthesis.cancel(); // 停止先前的聲音
   const utter = new SpeechSynthesisUtterance(item.word);
-  const langMap = { ja: 'ja-JP', ko: 'ko-KR', en: 'en-US', fr: 'fr-FR', de: 'de-DE', es: 'es-ES' };
-  utter.lang = langMap[currentLang] || 'en-US';
-  utter.rate = 0.85;
+  const langCodes = { ja: 'ja-JP', ko: 'ko-KR', en: 'en-US' };
+  utter.lang = langCodes[currentLang] || 'en-US';
+  utter.rate = 0.8;
   window.speechSynthesis.speak(utter);
 }
 
-async function handleSrsRating(rating) {
-  const item = currentCards[cardIndex];
-  const gainedXp = rating * 5;
-
-  userProfile.xp += gainedXp;
-
-  // 若已登入，寫入 Supabase 雲端
-  if (currentUser && supabase) {
-    const nextDays = rating === 1 ? 1 : rating === 3 ? 3 : 7;
-    const nextReview = new Date();
-    nextReview.setDate(nextReview.getDate() + nextDays);
-
-    await supabase.from('user_word_srs').upsert({
-      user_id: currentUser.id,
-      word_id: item.id,
-      proficiency: rating,
-      next_review_at: nextReview.toISOString()
-    });
-
-    await supabase.from('user_profiles').update({ xp: userProfile.xp }).eq('id', currentUser.id);
-  }
-
+// 6. SRS 記憶算分與換頁
+function handleSrsRating(score) {
+  userProfile.xp += score * 5;
   updateUI();
+
+  // 下一張卡片
   cardIndex = (cardIndex + 1) % currentCards.length;
   renderFlashcard();
 }
 
-// 6. 連連看小遊戲
+// 7. 連連看小遊戲
 function startMatchGame() {
   const board = document.getElementById('game-board');
   board.classList.remove('hidden');
   board.innerHTML = '';
 
-  const pick = [...currentCards].sort(() => Math.random() - 0.5).slice(0, 4);
+  const sample = [...currentCards].sort(() => Math.random() - 0.5).slice(0, 4);
   let items = [];
 
-  pick.forEach(c => {
+  sample.forEach(c => {
     items.push({ id: c.id, text: c.word, type: 'word' });
     items.push({ id: c.id, text: c.meaning, type: 'meaning' });
   });
@@ -286,6 +167,7 @@ function startMatchGame() {
         if (selected.el === card) return;
 
         if (selected.item.id === item.id && selected.item.type !== item.type) {
+          selected.el.classList.remove('selected');
           selected.el.classList.add('matched');
           card.classList.add('matched');
           userProfile.xp += 15;
@@ -300,24 +182,31 @@ function startMatchGame() {
   });
 }
 
-// 7. 地圖節點
+// 8. 地圖關卡渲染
 function renderMapNodes() {
   const container = document.getElementById('map-nodes-container');
   if (!container) return;
   container.innerHTML = '';
 
-  const stages = ["日常發音與單字", "常用基礎句型", "情境對話練習", "聽力與口語特訓", "全真模擬檢定"];
+  const stages = [
+    { title: "新手發音與基礎", icon: "⭐" },
+    { title: "生活常用對話", icon: "🔒" },
+    { title: "旅遊美饌通關", icon: "🔒" },
+    { title: "進階檢定考場", icon: "🔒" }
+  ];
 
-  stages.forEach((stage, idx) => {
+  stages.forEach((s, idx) => {
     const btn = document.createElement('button');
-    btn.className = `node-btn ${idx === 0 ? 'current' : ''}`;
-    btn.innerText = idx === 0 ? '⭐' : '🔒';
-    btn.onclick = () => alert(`關卡【${stage}】\n不用登入即可學習！點擊單字卡複習或玩連連看，賺取 XP 即可解鎖關卡！`);
+    btn.className = `node-btn ${idx === 0 ? 'active-node' : ''}`;
+    btn.innerText = s.icon;
+    btn.onclick = () => {
+      alert(`關卡【${s.title}】\n點擊下方「單字卡」或「遊戲」開始學習，即可獲得 XP 解鎖關卡！`);
+    };
     container.appendChild(btn);
   });
 }
 
-// 8. UI 更新
+// 9. 更新介面顯示數據
 function updateUI() {
   document.getElementById('xp-val').innerText = userProfile.xp;
   document.getElementById('streak-val').innerText = userProfile.streak_days;
@@ -325,4 +214,5 @@ function updateUI() {
   document.getElementById('prof-streak').innerText = `${userProfile.streak_days} 天`;
 }
 
+// 頁面載入後自動啟動
 window.onload = init;
