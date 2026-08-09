@@ -289,6 +289,37 @@ body {
 .srs-btn.good { background: #feebc8; color: #c05621; }
 .srs-btn.easy { background: #c6f6d5; color: #22543d; }
 
+/* 遊戲中心多樣樣式 */
+.game-mode-selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.game-mode-btn {
+  flex: 1;
+  padding: 10px 4px;
+  border-radius: 12px;
+  border: 2px solid #e2e8f0;
+  background: #ffffff;
+  color: #718096;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.game-mode-btn.active {
+  background: #ebf8ff;
+  border-color: #3182ce;
+  color: #2b6cb0;
+}
+
+.game-desc {
+  font-size: 13px;
+  color: #718096;
+  margin-bottom: 12px;
+}
+
 /* 連連看遊戲區 */
 .game-grid {
   display: grid;
@@ -321,6 +352,77 @@ body {
   pointer-events: none;
   border-color: #cbd5e0;
 }
+
+/* 聽音辨字區 */
+.audio-quiz-card, .swipe-quiz-card {
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.03);
+}
+
+.big-audio-btn {
+  background: #feebc8;
+  color: #c05621;
+  border: 2px solid #fbd38d;
+  padding: 16px 24px;
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.options-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.quiz-option-btn {
+  padding: 14px;
+  border-radius: 12px;
+  border: 2px solid #edf2f7;
+  background: #fafbfd;
+  font-weight: 700;
+  color: #4a5568;
+  cursor: pointer;
+}
+
+/* 滑卡衝刺區 */
+.swipe-word {
+  font-size: 32px;
+  font-weight: 800;
+  color: #2d3748;
+}
+
+.swipe-meaning {
+  font-size: 20px;
+  font-weight: 700;
+  color: #dd6b20;
+  margin: 12px 0 24px 0;
+}
+
+.swipe-btn-group {
+  display: flex;
+  gap: 12px;
+}
+
+.swipe-action-btn {
+  flex: 1;
+  padding: 14px;
+  border-radius: 16px;
+  border: none;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.btn-wrong { background: #fed7d7; color: #9b2c2c; }
+.btn-correct { background: #c6f6d5; color: #22543d; }
 
 /* 地圖關卡樣式 */
 .map-nodes {
