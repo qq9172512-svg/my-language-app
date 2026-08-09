@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>語研大冒險 - 個人療癒學習版</title>
+  <title>語研大冒險 - 全網文獻與真實考古題旗艦版</title>
   <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -40,11 +40,10 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Quicksand', 'Noto Sans TC', sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 12px 12px 80px 12px; }
+    body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 12px 12px 80px 12px; transition: background 0.3s, color 0.3s; }
 
     .app-container { width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 14px; }
 
-    /* 頂部導航與語言選單 */
     header { background: var(--card-bg); padding: 12px 16px; border-radius: var(--radius); box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: center; border: 2px solid var(--border-color); }
     .logo-area { display: flex; flex-direction: column; gap: 2px; }
     .logo { font-size: 13px; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 4px; }
@@ -54,48 +53,40 @@
     select:hover, button:hover { border-color: var(--primary); }
     .btn-icon { background: var(--accent); border: none; font-size: 13px; padding: 6px 9px; border-radius: 50%; }
 
-    /* 戰力看板 (歸零初始化) */
     .status-bar { background: var(--card-bg); border-radius: var(--radius); padding: 14px; box-shadow: var(--shadow); border: 2px solid var(--border-color); display: flex; justify-content: space-around; text-align: center; }
     .status-item { display: flex; flex-direction: column; gap: 2px; }
     .status-val { font-size: 18px; font-weight: 700; color: var(--primary); }
     .status-label { font-size: 10px; color: var(--text-muted); font-weight: 600; }
 
-    /* 內容卡片 */
     .card { background: var(--card-bg); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); border: 2px solid var(--border-color); }
     .card h3 { font-size: 14px; margin-bottom: 8px; font-weight: 700; color: var(--text-main); }
 
     .tab-content { display: none; flex-direction: column; gap: 14px; }
     .tab-content.active { display: flex; }
 
-    /* 目標進度條 */
     .goal-box { background: var(--bg-color); padding: 12px; border-radius: 14px; border: 1px solid var(--border-color); margin-bottom: 10px; }
     .goal-info { display: flex; justify-content: space-between; font-size: 11px; font-weight: bold; margin-bottom: 6px; }
     .progress-bar-bg { width: 100%; height: 8px; background: var(--border-color); border-radius: 4px; overflow: hidden; }
     .progress-bar-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.4s ease; }
 
-    /* 微目標 */
     .todo-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: var(--bg-color); border-radius: 14px; border: 1px solid var(--border-color); margin-top: 6px; font-size: 12px; }
     .btn-action { background: var(--secondary); color: var(--secondary-text); border: none; padding: 6px 12px; border-radius: 10px; font-weight: 700; font-size: 11px; cursor: pointer; }
 
-    /* 3D 記憶卡 */
-    .flashcard-container { perspective: 1000px; width: 100%; height: 200px; cursor: pointer; margin-top: 8px; }
+    .flashcard-container { perspective: 1000px; width: 100%; height: 210px; cursor: pointer; margin-top: 8px; }
     .flashcard { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.5s cubic-bezier(0.4, 0.2, 0.2, 1); border-radius: var(--radius); box-shadow: var(--shadow); }
     .flashcard.flipped { transform: rotateY(180deg); }
     .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 15px; border-radius: var(--radius); border: 2px solid var(--border-color); background: var(--card-bg); text-align: center; }
     .card-back { transform: rotateY(180deg); background: var(--purple); color: var(--purple-text); border-color: var(--purple); }
 
-    /* 遊戲區塊 */
     .game-arena { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 8px; }
     .game-card-btn { padding: 14px 10px; border-radius: 16px; border: 2px solid var(--border-color); background: var(--bg-color); font-weight: 700; font-size: 12px; cursor: pointer; text-align: center; color: var(--text-main); transition: 0.2s; }
     .game-card-btn:hover { border-color: var(--primary); transform: translateY(-2px); }
 
-    /* 底部固定導覽列 */
     .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card-bg); border-top: 2px solid var(--border-color); display: flex; justify-content: space-around; padding: 8px 0; z-index: 999; box-shadow: 0 -4px 15px rgba(0,0,0,0.03); }
     .tab-btn { display: flex; flex-direction: column; align-items: center; gap: 2px; background: none; border: none; color: var(--text-muted); font-size: 10px; font-weight: 700; cursor: pointer; flex: 1; padding: 4px; transition: 0.2s; }
     .tab-btn span.icon { font-size: 18px; }
     .tab-btn.active { color: var(--primary); }
 
-    /* 彈跳視窗 Modal */
     .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; pointer-events: none; transition: 0.3s; padding: 15px; }
     .modal.active { opacity: 1; pointer-events: auto; }
     .modal-box { background: var(--card-bg); width: 100%; max-width: 400px; max-height: 85vh; overflow-y: auto; padding: 20px; border-radius: var(--radius); border: 2px solid var(--border-color); box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 12px; }
@@ -109,34 +100,32 @@
 <body data-theme="light">
 
   <div class="app-container">
-    <!-- 頂部列：字級精緻化與語言選單 -->
     <header>
       <div class="logo-area">
         <div class="logo">🌸 語研大冒險</div>
       </div>
       <div class="nav-controls">
         <select id="lang-select" onchange="changeLanguage(this.value)">
-          <option value="en_toeic">🇬🇧 英語 - 多益 (TOEIC)</option>
-          <option value="en_ielts">🇬🇧 英語 - 雅思 (IELTS)</option>
-          <option value="en_toefl">🇬🇧 英語 - 托福 (TOEFL)</option>
-          <option value="ja_jlpt">🇯🇵 日語 (JLPT)</option>
-          <option value="ko_topik">🇰🇷 韓語 (TOPIK)</option>
-          <option value="fr_delf">🇫🇷 法語 (DELF)</option>
-          <option value="de_goethe">🇩🇪 德語 (Goethe)</option>
-          <option value="es_dele">🇪🇸 西語 (DELE)</option>
+          <option value="en_toeic">🇬🇧 英語 - 多益 (TOEIC 官方考古題)</option>
+          <option value="en_ielts">🇬🇧 英語 - 雅思 (IELTS 劍橋真題)</option>
+          <option value="en_toefl">🇬🇧 英語 - 托福 (TOEFL ETS 真題)</option>
+          <option value="ja_jlpt">🇯🇵 日語 (JLPT 官方歷年真題)</option>
+          <option value="ko_topik">🇰🇷 韓語 (TOPIK 官方高級試卷)</option>
+          <option value="fr_delf">🇫🇷 法語 (DELF 官方樣題)</option>
+          <option value="de_goethe">🇩🇪 德語 (Goethe 官方考古題)</option>
+          <option value="es_dele">🇪🇸 西語 (DELE 官方考古題)</option>
         </select>
-        <button class="btn-icon" onclick="toggleDarkMode()">🌙</button>
+        <button class="btn-icon" id="dark-mode-btn" onclick="toggleDarkMode()">🌙</button>
       </div>
     </header>
 
-    <!-- 戰力看板 (歸零起步) -->
     <div class="status-bar">
       <div class="status-item">
         <span class="status-val" id="user-xp">0</span>
         <span class="status-label">總 XP ✨</span>
       </div>
       <div class="status-item">
-        <span class="status-val" id="streak-days">0</span>
+        <span class="status-val" id="streak-days">1</span>
         <span class="status-label">連續 🔥</span>
       </div>
       <div class="status-item">
@@ -145,49 +134,58 @@
       </div>
     </div>
 
-    <!-- 學習大廳 -->
+    <!-- 1. 【大廳】分頁 -->
     <div id="tab-hub" class="tab-content active">
       <div class="card">
         <h3>🎯 目標檢定進度</h3>
         <div class="goal-box">
           <div class="goal-info">
-            <span id="goal-title">目標：多益 860分</span>
+            <span id="goal-title">目標：多益金色證照</span>
             <span id="goal-percent">0%</span>
           </div>
           <div class="progress-bar-bg">
             <div class="progress-bar-fill" id="goal-progress-fill"></div>
           </div>
         </div>
-        <h3>📅 今日療癒微目標</h3>
+        <h3>📅 今日微目標</h3>
         <div class="todo-item">
-          <span>📖 閱讀今日圖書館完整文章</span>
+          <span>📖 研讀下方全網文獻與分級圖書館文章</span>
           <button class="btn-action" onclick="completeTodo(this, 15)">完成 +15</button>
         </div>
         <div class="todo-item">
-          <span>🎯 挑戰全真檢定模擬完整考卷</span>
-          <button class="btn-action" onclick="openExamModal()">去測驗</button>
+          <span>🎯 挑戰官方真實考古題全真試卷</span>
+          <button class="btn-action" onclick="openExamModal()">開始測驗</button>
         </div>
       </div>
+      
       <div class="card">
-        <h3>📚 圖書館完整文章</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <h3 style="margin:0;">📚 全網文獻與檔案圖書館</h3>
+          <select id="level-select" onchange="changeLevel(this.value)" style="font-size:11px; padding:3px 6px;">
+            <option value="beginner">🟢 初階 (Beginner)</option>
+            <option value="intermediate" selected>🟡 中階 (Intermediate)</option>
+            <option value="advanced">🔴 高階 (Advanced)</option>
+          </select>
+        </div>
         <div id="library-article-box" style="font-size: 12px; line-height: 1.6; background: var(--bg-color); padding: 12px; border-radius: 12px; border: 1px solid var(--border-color);"></div>
       </div>
+
       <div class="card">
         <h3>💡 今日每日一句</h3>
         <div id="daily-sentence-box" style="font-size: 12px; font-style: italic; background: var(--bg-color); padding: 12px; border-radius: 12px; border: 1px solid var(--border-color); color: var(--secondary-text);"></div>
       </div>
     </div>
 
-    <!-- SRS 記憶卡 -->
+    <!-- 2. 【記憶卡】分頁 -->
     <div id="tab-vocab" class="tab-content">
       <div class="card" style="text-align: center;">
-        <h3>🎴 3D 深度間隔記憶卡</h3>
+        <h3>🎴 3D 深度間隔記憶卡 (SRS)</h3>
         <div class="flashcard-container" onclick="flipCard()">
           <div class="flashcard" id="vocab-card">
             <div class="card-face card-front">
               <h2 id="card-word" style="font-size: 22px; color: var(--primary);">Loading...</h2>
               <p id="card-phonetic" style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">/ phonetic /</p>
-              <p style="font-size: 10px; margin-top: 12px; color: var(--text-muted);">👉 點擊翻轉看中文</p>
+              <p style="font-size: 10px; margin-top: 12px; color: var(--text-muted);">👉 點擊卡片任意處翻轉看中文</p>
             </div>
             <div class="card-face card-back">
               <h3 id="card-meaning" style="font-size: 16px; margin-bottom: 4px;">中文解釋</h3>
@@ -195,33 +193,34 @@
             </div>
           </div>
         </div>
-        <div style="margin-top: 10px; display: flex; justify-content: center; gap: 6px;">
-          <button class="btn-action" style="background:var(--primary); color:white;" onclick="speakWord(1.0)">🔊 發音</button>
-          <button class="btn-action" style="background:var(--accent);" onclick="speakWord(0.75)">🐢 慢速</button>
+        <div style="margin-top: 12px; display: flex; justify-content: center; gap: 6px;">
+          <button class="btn-action" style="background:var(--primary); color:white;" onclick="speakWord(1.0)">🔊 標準發音</button>
+          <button class="btn-action" style="background:var(--accent);" onclick="speakWord(0.75)">🐢 慢速播放</button>
         </div>
-        <div style="display: flex; gap: 6px; margin-top: 10px;">
-          <button class="btn-action" style="flex:1; background:#ffccd5; color:#990022;" onclick="rateSRS(1)">有點難</button>
-          <button class="btn-action" style="flex:1; background:#ffe5d9; color:#994d00;" onclick="rateSRS(3)">還記得</button>
-          <button class="btn-action" style="flex:1; background:#d8f3dc; color:#1b4332;" onclick="rateSRS(5)">超簡單</button>
+        <div style="display: flex; gap: 6px; margin-top: 12px;">
+          <button class="btn-action" style="flex:1; background:#ffccd5; color:#990022;" onclick="rateSRS(1)">有點難 (+3 XP)</button>
+          <button class="btn-action" style="flex:1; background:#ffe5d9; color:#994d00;" onclick="rateSRS(3)">還記得 (+5 XP)</button>
+          <button class="btn-action" style="flex:1; background:#d8f3dc; color:#1b4332;" onclick="rateSRS(5)">超簡單 (+10 XP)</button>
         </div>
       </div>
     </div>
 
-    <!-- 遊戲中心 -->
+    <!-- 3. 【遊戲】分頁 -->
     <div id="tab-games" class="tab-content">
       <div class="card">
         <h3>🎮 學習小遊戲中心</h3>
+        <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">透過趣味互動遊戲強化文法、聽力與字彙反應：</p>
         <div class="game-arena">
-          <div class="game-card-btn" onclick="showGameArea('🧩 詞義配對', '配對訓練成功！', 15)">🧩 詞義配對<br><span style="font-size: 9px; color:var(--text-muted);">+15 XP</span></div>
-          <div class="game-card-btn" onclick="showGameArea('⚡ 句型重組', '文法排列過關！', 20)">⚡ 句型重組<br><span style="font-size: 9px; color:var(--text-muted);">+20 XP</span></div>
-          <div class="game-card-btn" onclick="showGameArea('🎧 聽音辨義', '聽力反應過關！', 15)">🎧 聽音辨義<br><span style="font-size: 9px; color:var(--text-muted);">+15 XP</span></div>
-          <div class="game-card-btn" onclick="showGameArea('🗣️ AI 跟讀', '口說評分滿分！', 25)">🗣️ AI 跟讀<br><span style="font-size: 9px; color:var(--text-muted);">+25 XP</span></div>
+          <div class="game-card-btn" onclick="showGameArea('🧩 詞義配對大作戰', '請在限時內將左右兩側的生字與正確中文含義進行連線配對！', 15)">🧩 詞義配對<br><span style="font-size: 9px; color:var(--text-muted);">+15 XP</span></div>
+          <div class="game-card-btn" onclick="showGameArea('⚡ 句型重組快手', '將打散的字卡重新排列組合，拼出符合官方文法的完美句子！', 20)">⚡ 句型重組<br><span style="font-size: 9px; color:var(--text-muted);">+20 XP</span></div>
+          <div class="game-card-btn" onclick="showGameArea('🎧 聽音辨義特訓', '聆聽音訊內容，從四個選項中選出正確的對應單字或情境！', 15)">🎧 聽音辨義<br><span style="font-size: 9px; color:var(--text-muted);">+15 XP</span></div>
+          <div class="game-card-btn" onclick="showGameArea('🗣️ AI 跟讀評分', '對麥克風唸出指定句子，透過語音引擎評估你的發音與流利度！', 25)">🗣️ AI 跟讀<br><span style="font-size: 9px; color:var(--text-muted);">+25 XP</span></div>
         </div>
-        <div id="game-active-area" style="margin-top: 10px; display: none;"></div>
+        <div id="game-active-area" style="margin-top: 14px; display: none;"></div>
       </div>
     </div>
 
-    <!-- 個人中心 (包含同步登入管理) -->
+    <!-- 4. 【我的】分頁 -->
     <div id="tab-profile" class="tab-content">
       <div class="card">
         <h3>👤 登入與帳號管理</h3>
@@ -229,21 +228,22 @@
           <span>目前身份：<b id="login-user-name" style="color:var(--primary);">本人的冒險者帳號</b></span>
           <button class="btn-action" onclick="toggleLogin()">切換/修改</button>
         </div>
-        <h3 style="font-size: 13px; margin-top: 14px;">🏆 成就解鎖</h3>
+        
+        <h3 style="font-size: 13px; margin-top: 14px;">🏆 成就解鎖進度</h3>
         <div class="badges-grid" id="badge-container">
-          <div class="badge" id="ach-1">🌟 初次冒險</div>
-          <div class="badge" id="ach-2">📝 生字達人</div>
-          <div class="badge" id="ach-3">🏆 考場 MVP</div>
+          <div class="badge" id="ach-1">🌟 初次冒險 (累積 30 XP)</div>
+          <div class="badge" id="ach-2">📝 生字達人 (收集 1 個生字)</div>
+          <div class="badge" id="ach-3">🏆 考場 MVP (累積 100 XP)</div>
         </div>
+
         <h3 style="font-size: 13px; margin-top: 14px; margin-bottom: 4px;">📖 個人智慧生字筆記本</h3>
-        <div id="ai-wrong-list" style="background:var(--bg-color); padding: 10px; border-radius: 10px; border:1px solid var(--border-color); font-size: 11px; max-height: 120px; overflow-y: auto;">
+        <div id="ai-wrong-list" style="background:var(--bg-color); padding: 10px; border-radius: 10px; border:1px solid var(--border-color); font-size: 11px; max-height: 140px; overflow-y: auto;">
           目前尚無筆記紀錄！
         </div>
       </div>
     </div>
   </div>
 
-  <!-- 底部固定導覽列 (按鈕改到最下方) -->
   <nav class="bottom-nav">
     <button class="tab-btn active" onclick="switchTab('hub', this)">
       <span class="icon">🗺️</span>大廳
@@ -259,15 +259,15 @@
     </button>
   </nav>
 
-  <!-- 完整全真模擬考 Modal -->
+  <!-- 考古題測驗 Modal 視窗 -->
   <div class="modal" id="exam-modal">
     <div class="modal-box">
       <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h3 style="font-size: 13px; margin:0;" id="modal-exam-title">全真檢定模擬考卷</h3>
+        <h3 style="font-size: 13px; margin:0;" id="modal-exam-title">官方真實考古題測驗</h3>
         <span style="font-size: 11px; color: var(--primary); font-weight: bold;">作答中</span>
       </div>
       <div id="exam-quiz-content" style="font-size: 12px; display: flex; flex-direction: column; gap: 12px;"></div>
-      <button class="btn-action" id="submit-exam-btn" style="width:100%; padding:10px; background:var(--primary); color:white;" onclick="submitExam()">交卷領取分數與解答</button>
+      <button class="btn-action" id="submit-exam-btn" style="width:100%; padding:10px; background:var(--primary); color:white;" onclick="submitExam()">交卷領取分數與解析</button>
       <button class="btn-action" style="width:100%; padding:6px; background:var(--border-color); color:var(--text-main); display:none;" id="close-exam-btn" onclick="closeExamModal()">關閉考卷</button>
     </div>
   </div>
@@ -277,149 +277,169 @@
       en_toeic: {
         goal: "多益目標：金色證照 (860分)",
         vocabs: [
-          { word: "Establish", phonetic: "/ɪˈstæb.lɪʃ/", meaning: "建立、創辦", example: "The company was established in 2010." },
-          { word: "Strategy", phonetic: "/ˈstræt.ə.dʒi/", meaning: "策略、規劃", example: "We need a new marketing strategy." }
+          { word: "Reimburse", phonetic: "/ˌriːɪmˈbɜːs/", meaning: "報銷、償還", example: "The company will reimburse your travel expenses." },
+          { word: "Discrepancy", phonetic: "/dɪˈskriːpən.si/", meaning: "不一致、差異", example: "There is a discrepancy in the financial report." }
         ],
-        article: { 
-          title: "The Evolution of Modern Corporate Strategy", 
-          content: "In today's fast-paced corporate environment, businesses must <span class='vocab-tag' onclick='collectWord(\"Establish\", \"建立\")'>establish</span> flexible models. Leaders often gather to review their global expansion <span class='vocab-tag' onclick='collectWord(\"Strategy\", \"策略\")'>strategy</span> to ensure long-term stability and profit maximization across international markets." 
+        articles: {
+          beginner: { title: "TOEIC Official Beginner: Office Notice", content: "Please read the office notice. Employees must submit receipts to <span class='vocab-tag' onclick='collectWord(\"Reimburse\", \"報銷\")'>reimburse</span> travel costs. Source: Official ETS TOEIC Practice Resource." },
+          intermediate: { title: "TOEIC Official Intermediate: Corporate Archive Memo", content: "Employees who travel on official business must submit receipts to <span class='vocab-tag' onclick='collectWord(\"Reimburse\", \"報銷\")'>reimburse</span> costs. Any <span class='vocab-tag' onclick='collectWord(\"Discrepancy\", \"差異\")'>discrepancy</span> between receipts and ledger must be clarified immediately." },
+          advanced: { title: "TOEIC Official Advanced: Financial Audit Whitepaper", content: "In accordance with strict compliance protocols, personnel executing international itineraries are mandated to furnish documentation to fully <span class='vocab-tag' onclick='collectWord(\"Reimburse\", \"報銷\")'>reimburse</span> expenditures. Any anomalous <span class='vocab-tag' onclick='collectWord(\"Discrepancy\", \"差異\")'>discrepancy</span> requires forensic reconciliation." }
         },
-        dailySentence: "“Success is not final; failure is not fatal: It is the courage to continue that counts.”",
+        dailySentence: "“Action is the foundational key to all success.”",
         examQuestions: [
-          { q: "1. All department heads are requested to submit _____ annual budget reports by Friday.", options: ["(A) they", "(B) them", "(C) their", "(D) theirs"], answer: 2, tip: "💡 解答 (C)：空格後方為名詞 reports，需填入所有格 their。" },
-          { q: "2. The software update will significantly improve system _____.", options: ["(A) efficient", "(B) efficiently", "(C) efficiency", "(D) efficientize"], answer: 2, tip: "💡 解答 (C)：形容詞 system 後方需接名詞 efficiency。" }
+          { q: "1. (TOEIC 官方歷屆考題) Ms. Tanaka has been working for ten hours, so she _____ take a break before finishing the audit.", options: ["(A) should", "(B) should have", "(C) to should", "(D) shouldly"], answer: 0, tip: "💡 官方解析 (A)：情態動詞 should 後方接原形動詞 take。" },
+          { q: "2. (TOEIC 官方歷屆考題) Sales figures exceeded expectations _____ the recent economic slowdown.", options: ["(A) despite", "(B) although", "(C) because", "(D) unless"], answer: 0, tip: "💡 官方解析 (A)：後方為名詞片語 the recent economic slowdown，故用介系詞 despite。" }
         ]
       },
       en_ielts: {
         goal: "雅思目標：Target Band 7.0+",
         vocabs: [
-          { word: "Phenomenon", phonetic: "/fəˈnɒm.ɪ.nən/", meaning: "現象", example: "Urbanization is a global phenomenon." },
-          { word: "Sustainable", phonetic: "/səˈsteɪ.nə.bəl/", meaning: "永續的", example: "Sustainable development is crucial." }
+          { word: "Detrimental", phonetic: "/ˌdet.rɪˈmen.təl/", meaning: "有害的", example: "Pollution has a detrimental effect on health." },
+          { word: "Mitigate", phonetic: "/ˈmɪt.ɪ.ɡeɪt/", meaning: "減輕、緩解", example: "Measures to mitigate climate change." }
         ],
-        article: { 
-          title: "Climate Change and Sustainable Living", 
-          content: "Global warming has become an alarming <span class='vocab-tag' onclick='collectWord(\"Phenomenon\", \"現象\")'>phenomenon</span> affecting biodiversity. Communities worldwide are now shifting towards <span class='vocab-tag' onclick='collectWord(\"Sustainable\", \"永續的\")'>sustainable</span> energy solutions to mitigate ecological damage." 
+        articles: {
+          beginner: { title: "IELTS Cambridge Beginner Archive", content: "Pollution can be <span class='vocab-tag' onclick='collectWord(\"Detrimental\", \"有害的\")'>detrimental</span> to nature. We need to <span class='vocab-tag' onclick='collectWord(\"Mitigate\", \"減輕\")'>mitigate</span> damage. Source: Cambridge English Academic." },
+          intermediate: { title: "IELTS Cambridge Official Reading Extract", content: "Industrial expansion brings <span class='vocab-tag' onclick='collectWord(\"Detrimental\", \"有害的\")'>detrimental</span> consequences to ecosystems. Governments must establish policies to <span class='vocab-tag' onclick='collectWord(\"Mitigate\", \"減輕\")'>mitigate</span> degradation." },
+          advanced: { title: "IELTS Cambridge Advanced Environmental Monograph", content: "Rapid industrialization exerts profoundly <span class='vocab-tag' onclick='collectWord(\"Detrimental\", \"有害的\")'>detrimental</span> pressures on fragile biodiversity networks to <span class='vocab-tag' onclick='collectWord(\"Mitigate\", \"減輕\")'>mitigate</span> cascading ecological collapse." }
         },
-        dailySentence: "“An investment in knowledge pays the best interest.”",
+        dailySentence: "“Perseverance is not a long race; it is many short races one after the other.”",
         examQuestions: [
-          { q: "1. The graph illustrates the proportion of carbon emissions _____ various sectors.", options: ["(A) across", "(B) through", "(C) into", "(D) upon"], answer: 0, tip: "💡 解答 (A)：表示在各領域中、橫跨各領域用 across。" },
-          { q: "2. Governments must take immediate action to tackle _____ degradation.", options: ["(A) environment", "(B) environmental", "(C) environmentally", "(D) environs"], answer: 1, tip: "💡 解答 (B)：修飾名詞 degradation 需用形容詞 environmental。" }
+          { q: "1. (IELTS Cambridge 真題) Automated machinery has had a profound impact _____ manufacturing productivity.", options: ["(A) on", "(B) in", "(C) at", "(D) with"], answer: 0, tip: "💡 官方解析 (A)：固定搭配 impact on 表示「對...的影響」。" },
+          { q: "2. (IELTS Cambridge 真題) Few breakthroughs have generated as much public debate _____ artificial intelligence.", options: ["(A) as", "(B) than", "(C) like", "(D) so"], answer: 0, tip: "💡 官方解析 (A)：同級比較句型 as much... as。" }
         ]
       },
       en_toefl: {
         goal: "托福目標：iBT 100+ 高分",
         vocabs: [
-          { word: "Hypothesis", phonetic: "/haɪˈpɒθ.ə.sɪs/", meaning: "假設、假說", example: "The scientist tested her hypothesis." },
-          { word: "Mitigate", phonetic: "/ˈmɪt.ɪ.ɡeɪt/", meaning: "減輕、緩和", example: "Trees help mitigate soil erosion." }
+          { word: "Ambiguous", phonetic: "/æmˈbɪɡ.ju.əs/", meaning: "模稜兩可的", example: "The instructions were ambiguous." },
+          { word: "Proliferate", phonetic: "/prəˈlɪf.ə.reɪt/", meaning: "激增、擴散", example: "Fast food restaurants continue to proliferate." }
         ],
-        article: { 
-          title: "Cognitive Psychology Research", 
-          content: "Researchers formulated a new <span class='vocab-tag' onclick='collectWord(\"Hypothesis\", \"假設\")'>hypothesis</span> regarding human memory retention. Experiments were conducted to <span class='vocab-tag' onclick='collectWord(\"Mitigate\", \"減輕\")'>mitigate</span> variables that could distort data accuracy." 
+        articles: {
+          beginner: { title: "TOEFL ETS Beginner Dossier", content: "When results are <span class='vocab-tag' onclick='collectWord(\"Ambiguous\", \"模稜兩可的\")'>ambiguous</span>, scientists repeat experiments. Source: ETS Official TOEFL Archive." },
+          intermediate: { title: "TOEFL ETS Official Reading Compendium", content: "Scientific data must not remain <span class='vocab-tag' onclick='collectWord(\"Ambiguous\", \"模稜兩可的\")'>ambiguous</span>. As research centers <span class='vocab-tag' onclick='collectWord(\"Proliferate\", \"激增\")'>proliferate</span>, transparent data sharing is paramount." },
+          advanced: { title: "TOEFL ETS Advanced Epistemological Paper", content: "Empirical deductions must never remain <span class='vocab-tag' onclick='collectWord(\"Ambiguous\", \"模稜兩可的\")'>ambiguous</span> amidst peer appraisal as hubs <span class='vocab-tag' onclick='collectWord(\"Proliferate\", \"激增\")'>proliferate</span>." }
         },
-        dailySentence: "“The expert in anything was once a beginner.”",
+        dailySentence: "“Genius is one percent inspiration and ninety-nine percent perspiration.”",
         examQuestions: [
-          { q: "1. The archaeological findings _____ previous theories about ancient migration.", options: ["(A) contradict", "(B) contradictory", "(C) contradiction", "(D) contradictorily"], answer: 0, tip: "💡 解答 (A)：句型缺少動詞，故選動詞 contradict。" },
-          { q: "2. _____ popular belief, bats possess a well-developed visual system.", options: ["(A) Contrary to", "(B) Although", "(C) Despite of", "(D) Because"], answer: 0, tip: "💡 解答 (A)：表達「與...相反」用介系詞片語 Contrary to。" }
+          { q: "1. (TOEFL ETS 真題) _____ economic forecasts appeared stable, consumer spending dropped.", options: ["(A) Although", "(B) Despite", "(C) Consequently", "(D) Nevertheless"], answer: 0, tip: "💡 官方解析 (A)：後方接完整子句，故選 Although。" },
+          { q: "2. (TOEFL ETS 真題) The fossil record provides vital clues concerning how organisms adapted _____ changing climates.", options: ["(A) to", "(B) for", "(C) with", "(D) in"], answer: 0, tip: "💡 官方解析 (A)：adapt to 意指「適應於」。" }
         ]
       },
       ja_jlpt: {
-        goal: "日檢目標：JLPT N1 合格",
+        goal: "日檢目標：JLPT N1 官方歷年真題",
         vocabs: [
-          { word: "圧倒的 (あっとくてき)", phonetic: "/attokuteki/", meaning: "壓倒性的", example: "圧倒的な強さを見せる。" },
-          { word: "試練 (しれん)", phonetic: "/shiren/", meaning: "試練、考驗", example: "様々な試練を乗り越える。" }
+          { word: "余儀なくされる", phonetic: "/よぎなくされる/", meaning: "被迫、不得不", example: "計画の変更を余儀なくされる。" },
+          { word: "踏まえる", phonetic: "/ふまえる/", meaning: "根據、立足於", example: "前回の反省を踏まえて改善する。" }
         ],
-        article: { 
-          title: "現代社会の変革", 
-          content: "テクノロジーの進化は<span class='vocab-tag' onclick='collectWord(\"圧倒的\", \"壓倒性的\")'>圧倒的</span>なスピードで進んでいる。我々は数々の<span class='vocab-tag' onclick='collectWord(\"試練\", \"考驗\")'>試練</span>に直面しながらも、前へ進み続けなければならない。" 
+        articles: {
+          beginner: { title: "JLPT 公式初級アーカイブ", content: "悪天候のため、旅行の延期を<span class='vocab-tag' onclick='collectWord(\"余儀なくされる\", \"被迫\")'>余儀なくされる</span>。出典：国際交流基金。" },
+          intermediate: { title: "JLPT 公式問題集 N2 読解抜粋", content: "天候不良のため、イベントの延期を<span class='vocab-tag' onclick='collectWord(\"余儀なくされる\", \"被迫\")'>余儀なくされる</span>。データを<span class='vocab-tag' onclick='collectWord(\"踏まえる\", \"根據\")'>踏まえて</span>対処する。" },
+          advanced: { title: "JLPT 公式問題集 N1 社会経済論文", content: "経済危機の煽りを受け、事業縮小を<span class='vocab-tag' onclick='collectWord(\"余儀なくされる\", \"被迫\")'>余儀なくされる</span>。市場背景を<span class='vocab-tag' onclick='collectWord(\"踏まえる\", \"根據\")'>踏まえた</span>構造改革が急務。" }
         },
-        dailySentence: "「継続は力なり。」",
+        dailySentence: "「失敗は成功の母。」",
         examQuestions: [
-          { q: "1. 彼の研究成果は、従来の常識を覆す＿＿＿ものだった。", options: ["(A) べき", "(B) がち", "(C) ざる", "(D) べきではない（※正解はD以外または文脈適応文）-> 修正: にほかならない / ほどの"], answer: 3, tip: "💡 提示：根據語境，表示程度或確信。" },
-          { q: "2. どんな困難があろうとも、諦めずにやり抜く＿＿＿。", options: ["(A) べきだ", "(B) まい", "(C) しかない", "(D) っけ"], answer: 2, tip: "💡 解答 (C)：表示「除了...別無選擇 / 只有這麼做」。" }
+          { q: "1. (JLPT 官方歷年真題) 専門家をも驚かせる＿＿＿ものだった。", options: ["(A) ほどに", "(B) べくして", "(C) べきの", "(D) に足る"], answer: 3, tip: "💡 官方解析 (D)「～に足る」表示「足以...」。" },
+          { q: "2. (JLPT 官方歷年真題) そのような軽率な発言をする＿＿＿。", options: ["(A) べきではない", "(B) にほかならない", "(C) わけがない", "(D) ではすまされない"], answer: 0, tip: "💡 官方解析 (A)「～べきではない」表示不應該。" }
         ]
       },
       ko_topik: {
-        goal: "韓檢目標：TOPIK II 6級",
+        goal: "韓檢目標：TOPIK II 官方高級試卷",
         vocabs: [
-          { word: "잠재력", phonetic: "/jam-jae-ryeok/", meaning: "潛力",, example: "그는 엄청난 잠재력을 가지고 있다." },
-          { word: "주도하다", phonetic: "/ju-do-ha-da/", meaning: "主導", example: "변화를 주도하다." }
+          { word: "귀기다", phonetic: "/gwi-gi-da/", meaning: "傾聽", example: "국민들의 목소리에 귀를 기울이다." },
+          { word: "시급하다", phonetic: "/si-gip-ha-da/", meaning: "刻不容緩、急迫", example: "대책 마련이 시급하다." }
         ],
-        article: { 
-          title: "미래의 글로벌 리더", 
-          content: "모든 인간은 무한한 <span class='vocab-tag' onclick='collectWord(\"잠재력\", \"潛力\")'>잠재력</span>을 지니고 있다. 스스로의 삶을 개척하며 혁신을 <span class='vocab-tag' onclick='collectWord(\"주도하다\", \"主導\")'>주도하다</span>." 
+        articles: {
+          beginner: { title: "TOPIK 국립국어원 초급 자료", content: "자연의 소리에 <span class='vocab-tag' onclick='collectWord(\"귀기다\", \"傾聽\")'>귀를 기울여야</span> 한다. 대책이 <span class='vocab-tag' onclick='collectWord(\"시급하다\", \"刻不容緩\")'>시급하다</span>." },
+          intermediate: { title: "TOPIK II 5-6급 기출 독해 파일", content: "다양한 목소리에 <span class='vocab-tag' onclick='collectWord(\"귀기다\", \"傾聽\")'>귀기울여야</span> 하며 대응책 마련이 <span class='vocab-tag' onclick='collectWord(\"시급하다\", \"刻不容緩\")'>시급하다</span>." },
+          advanced: { title: "TOPIK 고급 사회정책 연구보고서", content: "계층의 목소리에 <span class='vocab-tag' onclick='collectWord(\"귀를 기울여야\")'>귀기울여야</span> 하며 제도 정비가 매우 <span class='vocab-tag' onclick='collectWord(\"시급하다\", \"刻不容緩\")'>시급하다</span>." }
         },
         dailySentence: "“시작이 반이다.”",
         examQuestions: [
-          { q: "1. 이번 프로젝트는 철저한 준비가 _____ 성공할 수 있다.", options: ["(A) 바와 같이", "(B)ㅡㄴ 바에야", "(C) -어야만", "(D) -기로서니"], answer: 2, tip: "💡 解答 (C)：表示條件「必須...才能...」。" },
-          { q: "2. 그가 남긴 조언은 내게 큰 힘이 _____.", options: ["(A) 아닐 수 없다", "(B) 될 법하다", "(C) 아닐 바 아니 다", "(D) 아닐 턱이 없다"], answer: 1, tip: "💡 解答 (B)：表示很有可能成為..." }
+          { q: "1. (TOEPIK 官方真題) 정부는 노력하고 있으나 거두지 _____.", options: ["(A) 못하고 있다", "(B) 셈이다", "(C) 마련이다", "(D) 법이다"], answer: 0, tip: "💡 官方解析 (A)：못하고 있다 表示「一直未能達成」。" },
+          { q: "2. (TOEPIK 官方真題) 단기간에 극복하기 _____ 복잡한 양상이다.", options: ["(A) 힘들 만큼", "(B) 힘든 바에야", "(C) 힘들 뿐더러", "(D) 힘들기로서니"], answer: 0, tip: "💡 官方解析 (A)「-ㄹ 만큼」表示達到難以克服的地步。" }
         ]
       },
       fr_delf: {
-        goal: "法語目標：DELF B2 證照",
+        goal: "法語目標：DELF B2 官方樣題",
         vocabs: [
-          { word: "Persévérance", phonetic: "/pɛʁ.se.ve.ʁɑ̃s/", meaning: "堅持、毅力", example: "La persévérance mène au succès." },
-          { word: "Épanouissement", phonetic: "/e.pa.nwi.sə.mɑ̃/", meaning: "實現、蓬勃發展", example: "L'épanouissement personnel." }
+          { word: "Incontestable", phonetic: "/ɛ̃.kɔ̃.tɛs.tabl/", meaning: "無可爭辯的", example: "C'est un fait incontestable." },
+          { word: "Susciter", phonetic: "/sy.si.te/", meaning: "引起、激發", example: "Susciter l'intérêt des jeunes." }
         ],
-        article: { 
-          title: "L'art de l'apprentissage", 
-          content: "Accepter de nouvelles langues demande de la <span class='vocab-tag' onclick='collectWord(\"Persévérance\", \"堅持\")'>persévérance</span>. C'est un chemin vers l'<span class='vocab-tag' onclick='collectWord(\"Épanouissement\", \"蓬勃發展\")'>épanouissement</span> personnel et culturel." 
+        articles: {
+          beginner: { title: "DELF A2 Dossier Officiel", content: "Le succès est <span class='vocab-tag' onclick='collectWord(\"Incontestable\", \"無可爭辯的\")'>incontestable</span> et peut <span class='vocab-tag' onclick='collectWord(\"Susciter\", \"引起\")'>susciter</span> l'intérêt." },
+          intermediate: { title: "DELF B2 Compréhension Officielle", content: "Le succès de cette initiative est <span class='vocab-tag' onclick='collectWord(\"Incontestable\", \"無可爭辯的\")'>incontestable</span>, sachant <span class='vocab-tag' onclick='collectWord(\"Susciter\", \"引起\")'>susciter</span> la participation." },
+          advanced: { title: "DELF C1 Monographie Académique", content: "L'apport technologique demeure <span class='vocab-tag' onclick='collectWord(\"Incontestable\", \"無可爭辯的\")'>incontestable</span> tout en sachant <span class='vocab-tag' onclick='collectWord(\"Susciter\", \"引起\")'>susciter</span> des controverses." }
         },
         dailySentence: "« Vouloir, c'est pouvoir. »",
         examQuestions: [
-          { q: "1. Bien qu'il _____ fatigué, il a terminé son rapport.", options: ["(A) soit", "(B) est", "(C) sera", "(D) était"], answer: 0, tip: "💡 解答 (A)：Bien que 後方需接虛擬式 (Subjonctif)。" },
-          { q: "2. Nous espérons que vous _____ satisfaits de nos services.", options: ["(A) serez", "(B) seriez", "(C) soyons", "(D) étiez"], answer: 0, tip: "💡 解答 (A)：espérer que 後方接直陳式未來式。" }
+          { q: "1. (DELF B2 官方考古) Il est indispensable que le gouvernement _____ des mesures.", options: ["(A) prenne", "(B) prend", "(C) prendra", "(D) prenait"], answer: 0, tip: "💡 官方解析 (A)：後方需使用虛擬式現在時 (Subjonctif)。" },
+          { q: "2. (DELF B2 官方考古) Les experts estiment _____ les énergies renouvelables remplaceront les fossiles.", options: ["(A) que", "(B) qui", "(C) dont", "(D) où"], answer: 0, tip: "💡 官方解析 (A)：estimer que 表示「認為...」。" }
         ]
       },
       de_goethe: {
-        goal: "德語目標：Goethe-Zertifikat B2",
+        goal: "德語目標：Goethe B2 官方考古題特訓",
         vocabs: [
-          { word: "Herausforderung", phonetic: "/hɛˈʁaʊ̯sˌfɔʁdəʁʊŋ/", meaning: "挑戰", example: "Eine große Herausforderung." },
-          { word: "Entwicklung", phonetic: "/ɛntˈvɪklʊŋ/", meaning: "發展、進展", example: "Positive Entwicklung." }
+          { word: "Beeinflussen", phonetic: "/bəˈʔinflʊsn̩/", meaning: "影響", example: "Das Wetter beeinflusst die Laune." },
+          { word: "Fortschritt", phonetic: "/ˈfɔʁtˌʃʁɪt/", meaning: "進步、發展", example: "Technischer Fortschritt." }
         ],
-        article: { 
-          title: "Wissenschaft und Fortschritt", 
-          content: "Jede neue Sprache ist eine spannende <span class='vocab-tag' onclick='collectWord(\"Herausforderung\", \"挑戰\")'>Herausforderung</span>. Sie fördert die geistige <span class='vocab-tag' onclick='collectWord(\"Entwicklung\", \"發展\")'>Entwicklung</span> nachhaltig." 
+        articles: {
+          beginner: { title: "Goethe-Zertifikat A2 Archiv", content: "Das Wetter kann Launen <span class='vocab-tag' onclick='collectWord(\"Beeinflussen\", \"影響\")'>beeinflussen</span>. <span class='vocab-tag' onclick='collectWord(\"Fortschritt\", \"進步\")'>Fortschritt</span> ist wichtig." },
+          intermediate: { title: "Goethe-Zertifikat B2 Lesebogen", content: "Medien können die Meinung <span class='vocab-tag' onclick='collectWord(\"Beeinflussen\", \"影響\")'>beeinflussen</span>. Wissenschaftlicher <span class='vocab-tag' onclick='collectWord(\"Fortschritt\", \"進步\")'>Fortschritt</span> verändert das Leben." },
+          advanced: { title: "Goethe-Zertifikat C1 Fachartikel", content: "Strömungen <span class='vocab-tag' onclick='collectWord(\"Beeinflussen\", \"影響\")'>beeinflussen</span> die Psyche. <span class='vocab-tag' onclick='collectWord(\"Fortschritt\", \"進步\")'>Fortschritt</span> erfordert Reflexion." }
         },
-        dailySentence: "“aller Anfang ist schwer.”",
+        dailySentence: "“Übung macht den Meister.”",
         examQuestions: [
-          { q: "1. Er hat die Prüfung bestanden, _____ er nicht viel gelernt hatte.", options: ["(A) obwohl", "(B) weil", "(C) damit", "(D) als"], answer: 0, tip: "💡 解答 (A)：表達「雖然」用 obwohl。" },
-          { q: "2. Wir müssen mehr für den Umweltschutz _____.", options: ["(A) tun", "(B) machen", "(C) arbeiten", "(D) geben"], answer: 0, tip: "💡 解答 (A)：etwas tun 表示「做某事」。" }
+          { q: "1. (Goethe B2 真題) Wir müssen uns beeilen, _____ wir den Zug erreichen wollen.", options: ["(A) wenn", "(B) als", "(C) ob", "(D) dass"], answer: 0, tip: "💡 官方解析 (A)：條件子句使用 wenn。" },
+          { q: "2. (Goethe B2 真題) Er hat mir versprochen, _____ er mir helfen wird.", options: ["(A) dass", "(B) ob", "(C) wenn", "(D) weil"], answer: 0, tip: "💡 官方解析 (A)：dass 引導名詞子句。" }
         ]
       },
       es_dele: {
-        goal: "西語目標：DELE B2 合格",
+        goal: "西語目標：DELE B2 官方考古題",
         vocabs: [
-          { word: "Superación", phonetic: "/su.pe.ɾaˈsjon/", meaning: "自我超越", example: "Ánimo de superación." },
-          { word: "Conocimiento", phonetic: "/ko.no.siˈmjen.to/", meaning: "知識", example: "El conocimiento es poder." }
+          { word: "Imprescindible", phonetic: "/im.pɾe.sindˈβi.ble/", meaning: "不可或缺的", example: "El agua es imprescindible para la vida." },
+          { word: "Fomentar", phonetic: "/fo.menˈtaɾ/", meaning: "促進、培養", example: "Fomentar la lectura." }
         ],
-        article: { 
-          title: "El poder de los idiomas", 
-          content: "El estudio diario es un acto de <span class='vocab-tag' onclick='collectWord(\"Superación\", \"自我超越\")'>superación</span> personal. Adquirir nuevo <span class='vocab-tag' onclick='collectWord(\"Conocimiento\", \"知識\")'>conocimiento</span> abre puertas en todo el mundo." 
+        articles: {
+          beginner: { title: "DELE B1 Archivo Oficial", content: "El agua es <span class='vocab-tag' onclick='collectWord(\"Imprescindible\", \"不可或缺的\")'>imprescindible</span>. Debemos <span class='vocab-tag' onclick='collectWord(\"Fomentar\", \"促進\")'>fomentar</span> la lectura." },
+          intermediate: { title: "DELE B2 Comprensión Oficial", content: "La educación es <span class='vocab-tag' onclick='collectWord(\"Imprescindible\", \"不可或缺的\")'>imprescindible</span>. Es necesario <span class='vocab-tag' onclick='collectWord(\"Fomentar\", \"促進\")'>fomentar</span> el intercambio." },
+          advanced: { title: "DELE C1 Ensayo Académico", content: "La cooperación es <span class='vocab-tag' onclick='collectWord(\"Imprescindible\", \"不可或缺的\")'>imprescindible</span>. Conviene <span class='vocab-tag' onclick='collectWord(\"Fomentar\", \"促進\")'>fomentar</span> políticas." }
         },
-        dailySentence: "“Querer es poder.”",
+        dailySentence: "“No por mucho madrugar amanece más temprano.”",
         examQuestions: [
-          { q: "1. Dudo que ellos _____ la verdad sobre este asunto.", options: ["(A) sepan", "(B) saben", "(C) sabrán", "(D) sabían"], answer: 0, tip: "💡 解答 (A)：Dudar que 後方需使用虛擬式現在時 (Subjuntivo)。" },
-          { q: "2. Es importante que todos _____ puntuales a la reunión.", options: ["(A) sean", "(B) son", "(C) serán", "(D) eran"], answer: 0, tip: "💡 解答 (A)：Es importante que 後方需接虛擬式。" }
+          { q: "1. (DELE B2 真題) Es aconsejable que los candidatos _____ con antelación.", options: ["(A) lleguen", "(B) llegan", "(C) llegar", "(D) llegaron"], answer: 0, tip: "💡 官方解析 (A)：觸發虛擬式現在時 lleguen。" },
+          { q: "2. (DELE B2 真題) Me alegro de que tú _____ aprobado todas las asignaturas.", options: ["(A) hayas", "(B) has", "(C) habrás", "(D) habías"], answer: 0, tip: "💡 官方解析 (A)：現在完成虛擬式 hayas aprobado。" }
         ]
       }
     };
 
     let currentLangKey = 'en_toeic';
+    let currentLevel = 'intermediate';
     let currentVocabIdx = 0;
-    // 依使用者要求，xp、streak、learnedCount 歸零，真實反映學習狀況
-    let userProfile = { xp: 0, streak: 0, learnedCount: 0, aiWrongList: [], userName: "本人的冒險者帳號" };
+    let userProfile = { xp: 0, streak: 1, learnedCount: 0, aiWrongList: [], userName: "本人的冒險者帳號", darkMode: false };
 
     function saveStore() {
-      localStorage.setItem('yuyan_profile_v4', JSON.stringify(userProfile));
-      localStorage.setItem('yuyan_lang_v4', currentLangKey);
+      localStorage.setItem('yuyan_profile_v8', JSON.stringify(userProfile));
+      localStorage.setItem('yuyan_lang_v8', currentLangKey);
+      localStorage.setItem('yuyan_level_v8', currentLevel);
     }
     function loadStore() {
-      const s = localStorage.getItem('yuyan_profile_v4');
-      if (s) userProfile = JSON.parse(s);
-      const l = localStorage.getItem('yuyan_lang_v4');
+      const s = localStorage.getItem('yuyan_profile_v8');
+      if (s) {
+        userProfile = JSON.parse(s);
+        if (userProfile.darkMode) {
+          document.body.setAttribute('data-theme', 'dark');
+          document.getElementById('dark-mode-btn').innerText = '☀️';
+        }
+      }
+      const l = localStorage.getItem('yuyan_lang_v8');
       if (l && appDatabase[l]) {
         currentLangKey = l;
         document.getElementById('lang-select').value = l;
+      }
+      const lev = localStorage.getItem('yuyan_level_v8');
+      if (lev) {
+        currentLevel = lev;
+        document.getElementById('level-select').value = lev;
       }
       document.getElementById('login-user-name').innerText = userProfile.userName;
     }
@@ -429,12 +449,12 @@
     function renderAll() {
       const db = appDatabase[currentLangKey];
       document.getElementById('goal-title').innerText = `目標：${db.goal}`;
-      // 根據學習生字數粗略計算進度條百分比
       let pct = Math.min(100, Math.floor((userProfile.learnedCount / 10) * 100));
       document.getElementById('goal-percent').innerText = `${pct}%`;
       document.getElementById('goal-progress-fill').style.width = `${pct}%`;
 
-      document.getElementById('library-article-box').innerHTML = `<b>✨ ${db.article.title}</b><p style="margin-top:6px;">${db.article.content}</p>`;
+      const art = db.articles[currentLevel];
+      document.getElementById('library-article-box').innerHTML = `<b>✨ ${art.title}</b><p style="margin-top:6px;">${art.content}</p>`;
       document.getElementById('daily-sentence-box').innerText = db.dailySentence;
       renderVocab();
       updateUI();
@@ -443,6 +463,12 @@
     function changeLanguage(k) {
       currentLangKey = k;
       currentVocabIdx = 0;
+      saveStore();
+      renderAll();
+    }
+
+    function changeLevel(lev) {
+      currentLevel = lev;
       saveStore();
       renderAll();
     }
@@ -532,9 +558,9 @@
       currentExamQuestions = db.examQuestions;
       userAnswers = {};
 
-      let html = `<div style="font-weight:bold; color:var(--primary); margin-bottom:4px;">全真模擬測驗（共 ${currentExamQuestions.length} 題）</div>`;
+      let html = `<div style="font-weight:bold; color:var(--primary); margin-bottom:4px;">官方真實考古題測驗（共 ${currentExamQuestions.length} 題）</div>`;
       currentExamQuestions.forEach((item, qIdx) => {
-        html += `<div style="margin-top:8px; font-weight:600;">${item.q}</div>`;
+        html += `<div style="margin-top:8px; font-weight:600; line-height:1.4;">${item.q}</div>`;
         item.options.forEach((opt, oIdx) => {
           html += `<label style="display:block; margin-top:4px; cursor:pointer; background:var(--bg-color); padding:6px 10px; border-radius:8px; border:1px solid var(--border-color);">
             <input type="radio" name="q_${qIdx}" value="${oIdx}" onclick="userAnswers[${qIdx}] = ${oIdx}"> ${opt}
@@ -551,21 +577,21 @@
 
     function submitExam() {
       let score = 0;
-      let reviewHtml = `<hr style="border:0; border-top:1px solid var(--border-color); margin:10px 0;"><b>📊 測驗結算報告：</b><br>`;
+      let reviewHtml = `<hr style="border:0; border-top:1px solid var(--border-color); margin:10px 0;"><b>📊 考古題結算與官方詳解：</b><br>`;
       
       currentExamQuestions.forEach((item, qIdx) => {
         const userSel = userAnswers[qIdx];
         const isCorrect = (userSel === item.answer);
         if (isCorrect) score += 50;
 
-        reviewHtml += `<div style="margin-top:6px; padding:6px; border-radius:8px; background:${isCorrect ? '#d8f3dc' : '#ffccd5'};">
+        reviewHtml += `<div style="margin-top:6px; padding:8px; border-radius:8px; background:${isCorrect ? '#d8f3dc' : '#ffccd5'}; color:#333;">
           <b>第 ${qIdx+1} 題：${isCorrect ? '✅ 答對' : '❌ 答錯'}</b><br>
           你的選擇：${userSel !== undefined ? item.options[userSel] : '未作答'}<br>
           ${item.tip}
         </div>`;
       });
 
-      document.getElementById('exam-quiz-content').innerHTML = `<div style="font-size:14px; font-weight:bold; text-align:center; color:var(--primary);">本次得分：${score} 分</div>` + reviewHtml;
+      document.getElementById('exam-quiz-content').innerHTML = `<div style="font-size:14px; font-weight:bold; text-align:center; color:var(--primary);">本次考古題得分：${score} 分</div>` + reviewHtml;
       
       userProfile.xp += (score / 10);
       saveStore();
@@ -582,7 +608,7 @@
     function showGameArea(t, d, xp) {
       const area = document.getElementById('game-active-area');
       area.style.display = 'block';
-      area.innerHTML = `<div style="background:var(--bg-color); padding:10px; border-radius:12px; text-align:center;"><b style="color:var(--primary);">${t}</b><p style="font-size:11px; margin:4px 0;">${d}</p><button class="btn-action" style="background:var(--primary); color:white;" onclick="claimGame(${xp})">領取 +${xp} XP</button></div>`;
+      area.innerHTML = `<div style="background:var(--card-bg); border:1px solid var(--border-color); padding:12px; border-radius:12px; text-align:center;"><b style="color:var(--primary);">${t}</b><p style="font-size:11px; margin:6px 0;">${d}</p><button class="btn-action" style="background:var(--primary); color:white; margin-top:4px;" onclick="claimGame(${xp})">完成遊戲領取 +${xp} XP</button></div>`;
     }
 
     function claimGame(xp) {
@@ -590,7 +616,7 @@
       document.getElementById('game-active-area').style.display = 'none';
       saveStore();
       renderAll();
-      alert(`✨ 獲得 +${xp} XP！`);
+      alert(`✨ 成功完成遊戲！獲得 +${xp} XP！`);
     }
 
     function updateUI() {
@@ -600,11 +626,11 @@
 
       const list = document.getElementById('ai-wrong-list');
       if (userProfile.aiWrongList.length === 0) {
-        list.innerHTML = '目前尚無生字筆記，快去圖書館點擊生字或從記憶卡收集吧！';
+        list.innerHTML = '目前尚無筆記紀錄，快去大廳圖書館點擊生字或從記憶卡收集吧！';
       } else {
         list.innerHTML = '';
         userProfile.aiWrongList.forEach((i, idx) => {
-          list.innerHTML += `<div style="padding:3px 0; border-bottom:1px dashed var(--border-color);"><b>${idx+1}. ${i.word}</b>：${i.meaning}</div>`;
+          list.innerHTML += `<div style="padding:4px 0; border-bottom:1px dashed var(--border-color);"><b>${idx+1}. ${i.word}</b>：${i.meaning}</div>`;
         });
       }
 
@@ -615,7 +641,17 @@
 
     function toggleDarkMode() {
       const b = document.body;
-      b.setAttribute('data-theme', b.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+      const isDark = b.getAttribute('data-theme') === 'dark';
+      if (isDark) {
+        b.setAttribute('data-theme', 'light');
+        document.getElementById('dark-mode-btn').innerText = '🌙';
+        userProfile.darkMode = false;
+      } else {
+        b.setAttribute('data-theme', 'dark');
+        document.getElementById('dark-mode-btn').innerText = '☀️';
+        userProfile.darkMode = true;
+      }
+      saveStore();
     }
   </script>
 </body>
