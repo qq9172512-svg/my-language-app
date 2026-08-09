@@ -5,7 +5,12 @@ let userProfile = { xp: 0, streak_days: 1 };
 let currentCards = [];
 let cardIndex = 0;
 
-// 完整內建多國單字庫 (日、韓、英、法、德、西)
+// 遊戲狀態
+let audioQuizCurrent = null;
+let swipeQuizCurrent = null;
+let swipeQuizIsCorrect = false;
+
+// 內建 6 國語言單字庫
 const vocabsDatabase = {
   ja: [
     { id: 'j1', word: 'こんにちは', reading: 'Konnichiwa', meaning: '你好', category: '問候', example_sentence: '皆さん、こんにちは！', example_translation: '大家你好！' },
@@ -28,20 +33,15 @@ const vocabsDatabase = {
   fr: [
     { id: 'f1', word: 'Bonjour', reading: 'bõʒuʁ', meaning: '你好；早安', category: '問候', example_sentence: 'Bonjour, comment allez-vous ?', example_translation: '你好，你好嗎？' },
     { id: 'f2', word: 'Merci', reading: 'mɛʁsi', meaning: '謝謝', category: '禮貌', example_sentence: 'Merci beaucoup !', example_translation: '非常感謝！' },
-    { id: 'f3', word: 'Café', reading: 'kafe', meaning: '咖啡', category: '飲食', example_sentence: 'Un café, s\'il vous plaît.', example_translation: '請給我一杯咖啡。' },
-    { id: 'f4', word: 'Amour', reading: 'amuʁ', meaning: '愛；愛情', category: '情感', example_sentence: 'L\'amour est magnifique.', example_translation: '愛情是美好的。' }
+    { id: 'f3', word: 'Café', reading: 'kafe', meaning: '咖啡', category: '飲食', example_sentence: 'Un café, s\'il vous plaît.', example_translation: '請給我一杯咖啡。' }
   ],
   de: [
     { id: 'd1', word: 'Guten Tag', reading: 'ɡuːtn̩ taːk', meaning: '你好；日安', category: '問候', example_sentence: 'Guten Tag! Wie geht es Ihnen?', example_translation: '你好！您最近好嗎？' },
-    { id: 'd2', word: 'Danke', reading: 'daŋkə', meaning: '謝謝', category: '禮貌', example_sentence: 'Vielen Dank für Ihre Hilfe.', example_translation: '非常感謝您的幫助。' },
-    { id: 'd3', word: 'Kaffee', reading: 'kafe', meaning: '咖啡', category: '飲食', example_sentence: 'Ich möchte einen Kaffee bitte.', example_translation: '我想要一杯咖啡，謝謝。' },
-    { id: 'd4', word: 'Wunderbar', reading: 'vʊndɐbaːɐ̯', meaning: '極好的；美妙的', category: '讚美', example_sentence: 'Das Wetter ist wunderbar.', example_translation: '天氣太棒了。' }
+    { id: 'd2', word: 'Danke', reading: 'daŋkə', meaning: '謝謝', category: '禮貌', example_sentence: 'Vielen Dank für Ihre Hilfe.', example_translation: '非常感謝您的幫助。' }
   ],
   es: [
     { id: 's1', word: '¡Hola!', reading: 'o.la', meaning: '你好！', category: '問候', example_sentence: '¡Hola! ¿Cómo estás?', example_translation: '你好！你好嗎？' },
-    { id: 's2', word: 'Gracias', reading: 'gɾa.sjas', meaning: '謝謝', category: '禮貌', example_sentence: 'Muchas gracias por todo.', example_translation: '非常感謝你做的一切。' },
-    { id: 's3', word: 'Amigo', reading: 'a.mi.ɣo', meaning: '朋友', category: '社交', example_sentence: 'Él es mi mejor amigo.', example_translation: '他是我最好的朋友。' },
-    { id: 's4', word: 'Fiesta', reading: 'fjes.ta', meaning: '派對；節慶', category: '娛樂', example_sentence: '¡Vamos a la fiesta!', example_translation: '我們去參加派對吧！' }
+    { id: 's2', word: 'Gracias', reading: 'gɾa.sjas', meaning: '謝謝', category: '禮貌', example_sentence: 'Muchas gracias por todo.', example_translation: '非常感謝你做的一切。' }
   ]
 };
 
@@ -55,7 +55,7 @@ function init() {
 
 // 2. 事件綁定
 function bindEvents() {
-  // 底部頁籤切換
+  // 底部 Tab 切換
   document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.onclick = () => {
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -67,51 +67,61 @@ function bindEvents() {
     };
   });
 
-  // 切換語言選單
+  // 語言選單
   document.getElementById('lang-select').onchange = (e) => {
     currentLang = e.target.value;
     loadLanguageData();
   };
 
-  // 右上角設定/登入按鈕
+  // 帳號按鈕 / Modal 關閉
   document.getElementById('btn-logout').onclick = () => {
     document.getElementById('auth-modal').classList.remove('hidden');
   };
-
-  // 關閉登入視窗
   document.getElementById('btn-close-modal').onclick = () => {
     document.getElementById('auth-modal').classList.add('hidden');
   };
 
-  // 點擊單字卡翻面 (避開發音按鈕)
+  // 3D 單字卡翻轉與發音
   document.getElementById('active-card').onclick = (e) => {
     if (e.target.id === 'btn-audio') return;
     document.getElementById('active-card').classList.toggle('flipped');
   };
-
-  // 發音按鈕 (Web Speech API)
   document.getElementById('btn-audio').onclick = (e) => {
     e.stopPropagation();
-    playSpeech();
+    playSpeech(currentCards[cardIndex]?.word);
   };
 
-  // SRS 記憶評分按鈕綁定
+  // SRS 評分
   document.getElementById('srs-btn-hard').onclick = () => handleSrsRating(1);
   document.getElementById('srs-btn-good').onclick = () => handleSrsRating(3);
   document.getElementById('srs-btn-easy').onclick = () => handleSrsRating(5);
 
-  // 開始連連看遊戲
+  // 遊戲模式切換按鈕
+  document.getElementById('mode-match-btn').onclick = () => switchGameMode('match');
+  document.getElementById('mode-audio-btn').onclick = () => switchGameMode('audio');
+  document.getElementById('mode-swipe-btn').onclick = () => switchGameMode('swipe');
+
+  // 連連看開始
   document.getElementById('btn-start-game').onclick = startMatchGame;
+
+  // 聽音辨字播放與答題
+  document.getElementById('btn-play-quiz-sound').onclick = () => {
+    if (audioQuizCurrent) playSpeech(audioQuizCurrent.word);
+  };
+
+  // 滑卡衝刺按鈕
+  document.getElementById('btn-swipe-false').onclick = () => handleSwipeAnswer(false);
+  document.getElementById('btn-swipe-true').onclick = () => handleSwipeAnswer(true);
 }
 
-// 3. 載入單字數據
+// 3. 載入單字
 function loadLanguageData() {
   currentCards = vocabsDatabase[currentLang] || vocabsDatabase['ja'];
   cardIndex = 0;
   renderFlashcard();
 }
 
-// 4. 渲染單字卡內容
+// 4. 卡片渲染
 function renderFlashcard() {
   if (!currentCards.length) return;
   const item = currentCards[cardIndex];
@@ -126,39 +136,45 @@ function renderFlashcard() {
   document.getElementById('srs-pending-count').innerText = currentCards.length - cardIndex;
 }
 
-// 5. 語音朗讀 TTS (支援日、韓、英、法、德、西)
-function playSpeech() {
-  const item = currentCards[cardIndex];
-  if (!item || !('speechSynthesis' in window)) {
-    alert("您的瀏覽器暫不支援語音合成發音。");
-    return;
-  }
-
+// 5. TTS 發音
+function playSpeech(text) {
+  if (!text || !('speechSynthesis' in window)) return;
   window.speechSynthesis.cancel();
-  const utter = new SpeechSynthesisUtterance(item.word);
-  const langCodes = { 
-    ja: 'ja-JP', 
-    ko: 'ko-KR', 
-    en: 'en-US',
-    fr: 'fr-FR',
-    de: 'de-DE',
-    es: 'es-ES'
-  };
+  const utter = new SpeechSynthesisUtterance(text);
+  const langCodes = { ja: 'ja-JP', ko: 'ko-KR', en: 'en-US', fr: 'fr-FR', de: 'de-DE', es: 'es-ES' };
   utter.lang = langCodes[currentLang] || 'en-US';
-  utter.rate = 0.8;
+  utter.rate = 0.85;
   window.speechSynthesis.speak(utter);
 }
 
-// 6. SRS 記憶算分與換頁
+// 6. SRS 按鈕
 function handleSrsRating(score) {
   userProfile.xp += score * 5;
   updateUI();
-
   cardIndex = (cardIndex + 1) % currentCards.length;
   renderFlashcard();
 }
 
-// 7. 連連看小遊戲
+// 7. 遊戲切換與邏輯
+function switchGameMode(mode) {
+  document.querySelectorAll('.game-mode-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.game-container').forEach(c => c.classList.add('hidden'));
+
+  if (mode === 'match') {
+    document.getElementById('mode-match-btn').classList.add('active');
+    document.getElementById('game-match-view').classList.remove('hidden');
+  } else if (mode === 'audio') {
+    document.getElementById('mode-audio-btn').classList.add('active');
+    document.getElementById('game-audio-view').classList.remove('hidden');
+    startAudioQuiz();
+  } else if (mode === 'swipe') {
+    document.getElementById('mode-swipe-btn').classList.add('active');
+    document.getElementById('game-swipe-view').classList.remove('hidden');
+    startSwipeQuiz();
+  }
+}
+
+// 遊戲 1: 連連看
 function startMatchGame() {
   const board = document.getElementById('game-board');
   board.classList.remove('hidden');
@@ -173,7 +189,6 @@ function startMatchGame() {
   });
 
   items.sort(() => Math.random() - 0.5);
-
   let selected = null;
 
   items.forEach(item => {
@@ -206,7 +221,70 @@ function startMatchGame() {
   });
 }
 
-// 8. 地圖關卡渲染
+// 遊戲 2: 聽音辨字
+function startAudioQuiz() {
+  if (!currentCards.length) return;
+  audioQuizCurrent = currentCards[Math.floor(Math.random() * currentCards.length)];
+  
+  const container = document.getElementById('audio-options-container');
+  container.innerHTML = '';
+
+  // 隨機取出選項並放入正確答案
+  let options = [...currentCards].filter(c => c.id !== audioQuizCurrent.id).sort(() => Math.random() - 0.5).slice(0, 2);
+  options.push(audioQuizCurrent);
+  options.sort(() => Math.random() - 0.5);
+
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'quiz-option-btn';
+    btn.innerText = opt.meaning;
+    btn.onclick = () => {
+      if (opt.id === audioQuizCurrent.id) {
+        alert("🎉 答對了！ +10 XP");
+        userProfile.xp += 10;
+        updateUI();
+        startAudioQuiz();
+      } else {
+        alert("❌ 再試一次看看！");
+      }
+    };
+    container.appendChild(btn);
+  });
+
+  // 自動播放發音
+  setTimeout(() => playSpeech(audioQuizCurrent.word), 300);
+}
+
+// 遊戲 3: 滑卡判斷
+function startSwipeQuiz() {
+  if (!currentCards.length) return;
+  const wordItem = currentCards[Math.floor(Math.random() * currentCards.length)];
+  swipeQuizIsCorrect = Math.random() > 0.5;
+
+  let displayMeaning = wordItem.meaning;
+  if (!swipeQuizIsCorrect) {
+    const wrongItems = currentCards.filter(c => c.id !== wordItem.id);
+    if (wrongItems.length > 0) {
+      displayMeaning = wrongItems[Math.floor(Math.random() * wrongItems.length)].meaning;
+    }
+  }
+
+  document.getElementById('swipe-word').innerText = wordItem.word;
+  document.getElementById('swipe-meaning').innerText = displayMeaning;
+}
+
+function handleSwipeAnswer(userChoice) {
+  if (userChoice === swipeQuizIsCorrect) {
+    userProfile.xp += 10;
+    updateUI();
+    alert("⭕ 答對了！ +10 XP");
+  } else {
+    alert("❌ 答錯了，再接再厲！");
+  }
+  startSwipeQuiz();
+}
+
+// 8. 地圖與 UI 更新
 function renderMapNodes() {
   const container = document.getElementById('map-nodes-container');
   if (!container) return;
@@ -223,14 +301,11 @@ function renderMapNodes() {
     const btn = document.createElement('button');
     btn.className = `node-btn ${idx === 0 ? 'active-node' : ''}`;
     btn.innerText = s.icon;
-    btn.onclick = () => {
-      alert(`關卡【${s.title}】\n點擊下方「單字卡」或「遊戲」開始學習，即可獲得 XP 解鎖關卡！`);
-    };
+    btn.onclick = () => alert(`關卡【${s.title}】\n進行複習與遊戲賺取 XP，解鎖新章節！`);
     container.appendChild(btn);
   });
 }
 
-// 9. 更新介面顯示數據
 function updateUI() {
   document.getElementById('xp-val').innerText = userProfile.xp;
   document.getElementById('streak-val').innerText = userProfile.streak_days;
@@ -238,5 +313,4 @@ function updateUI() {
   document.getElementById('prof-streak').innerText = `${userProfile.streak_days} 天`;
 }
 
-// 頁面載入後自動啟動
 window.onload = init;
