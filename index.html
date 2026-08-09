@@ -3,15 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>語研大冒險 - Language Learning PWA</title>
+  <title>語研大冒險 - 語言學習 App</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="manifest" href="manifest.json" />
-  <!-- Supabase JS Client (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <div id="app">
-    <!-- 頂部導覽列 -->
+    <!-- 頂部列 -->
     <header class="top-bar">
       <div class="user-status">
         <span class="avatar">🐱</span>
@@ -23,44 +22,42 @@
       <div class="stats-group">
         <div class="stat-badge">🔥 <span id="streak-val">1</span> 天</div>
         <div class="stat-badge">⭐ <span id="xp-val">0</span> XP</div>
-        <button id="btn-logout" class="icon-btn" title="帳號 / 登入管理">⚙️</button>
+        <button id="btn-logout" class="icon-btn" title="帳號 / 登入">⚙️</button>
       </div>
     </header>
 
-    <!-- 主內容區域 -->
+    <!-- 主頁面 -->
     <main class="content-area">
       <!-- Tab 1: 地圖關卡 -->
       <section id="tab-map" class="tab-page">
         <div class="lang-selector-wrapper">
-          <label for="lang-select">選擇目標語言：</label>
+          <label for="lang-select" style="font-weight:700; font-size:14px; color:#4a5568;">選擇學習語言：</label>
           <select id="lang-select">
-            <option value="ja">🇯🇵 日語 (JLPT)</option>
-            <option value="ko">🇰🇷 韓語 (TOPIK)</option>
-            <option value="en">🇺🇸 英語 (TOEIC)</option>
+            <option value="ja">🇯🇵 日語 (JLPT N5)</option>
+            <option value="ko">🇰🇷 韓語 (TOPIK I)</option>
+            <option value="en">🇺🇸 英語 (生活實用)</option>
           </select>
         </div>
-        <div class="map-container">
-          <h2>🗺️ 語言學習地圖</h2>
-          <div id="map-nodes-container" class="map-nodes"></div>
-        </div>
+        <h2 class="section-title">🗺️ 冒險關卡地圖</h2>
+        <div id="map-nodes-container" class="map-nodes"></div>
       </section>
 
-      <!-- Tab 2: 3D 單字卡 SRS 複習 -->
+      <!-- Tab 2: 3D 單字卡 -->
       <section id="tab-cards" class="tab-page hidden">
         <div class="cards-header">
-          <h3>🎴 智慧單字卡 (SRS)</h3>
-          <span class="pending-badge">待複習：<span id="srs-pending-count">0</span></span>
+          <h2 class="section-title" style="margin:0;">🎴 智慧單字卡</h2>
+          <span class="pending-badge">剩餘：<span id="srs-pending-count">0</span> 個</span>
         </div>
 
         <div class="flashcard-container">
           <div class="flashcard" id="active-card">
             <!-- 正面 -->
             <div class="card-face card-front">
-              <span class="card-tag" id="card-cat">日常基礎</span>
-              <div class="card-main-word" id="card-word">Loading...</div>
+              <span class="card-tag" id="card-cat">日常</span>
+              <div class="card-main-word" id="card-word">...</div>
               <div class="card-sub-reading" id="card-reading">...</div>
-              <button class="audio-btn" id="btn-audio">🔊 聽發音</button>
-              <p class="flip-hint">👆 點擊卡片翻面看釋義</p>
+              <button class="audio-btn" id="btn-audio">🔊 點擊發音</button>
+              <p class="flip-hint">👆 點擊卡片翻看釋義與例句</p>
             </div>
             <!-- 背面 -->
             <div class="card-face card-back">
@@ -74,51 +71,48 @@
           </div>
         </div>
 
-        <!-- SRS 評分按鈕列 -->
+        <!-- SRS 記憶評分按鈕 -->
         <div class="srs-controls">
-          <button class="srs-btn hard" onclick="handleSrsRating(1)">🔴 很難 (1天後)</button>
-          <button class="srs-btn good" onclick="handleSrsRating(3)">🟡 尚可 (3天後)</button>
-          <button class="srs-btn easy" onclick="handleSrsRating(5)">🟢 簡單 (7天後)</button>
+          <button class="srs-btn hard" id="srs-btn-hard">🔴 有點難</button>
+          <button class="srs-btn good" id="srs-btn-good">🟡 還記得</button>
+          <button class="srs-btn easy" id="srs-btn-easy">🟢 超簡單</button>
         </div>
       </section>
 
-      <!-- Tab 3: 連連看小遊戲 -->
+      <!-- Tab 3: 配對小遊戲 -->
       <section id="tab-game" class="tab-page hidden">
-        <div class="game-header">
-          <h3>🎮 單字連連看挑戰</h3>
-          <p>配對正確的單字與中文釋義以獲得額外 XP！</p>
-          <button id="btn-start-game" class="btn primary">開始全新一局</button>
-        </div>
+        <h2 class="section-title">🎮 單字連連看</h2>
+        <p style="font-size:13px; color:#718096; margin-bottom:12px;">將單字與對應中文點擊配對，賺取 15 XP！</p>
+        <button id="btn-start-game" class="btn primary">開始全新一局</button>
         <div id="game-board" class="game-grid hidden"></div>
       </section>
 
-      <!-- Tab 4: 個人檔案與數據 -->
+      <!-- Tab 4: 個人檔案 -->
       <section id="tab-profile" class="tab-page hidden">
-        <div class="profile-card">
-          <div class="profile-header">
-            <div class="big-avatar">🐱</div>
-            <h2 id="prof-display-name">冒險家</h2>
-            <p id="prof-email">未登入</p>
-          </div>
-          <div class="profile-stats">
-            <div class="p-stat-item">
-              <span class="p-label">累積經驗值</span>
-              <span class="p-val" id="prof-xp">0 XP</span>
+        <h2 class="section-title">👤 冒險家成就</h2>
+        <div style="background:#fff; padding:20px; border-radius:20px; border:2px solid #e2e8f0; text-align:center;">
+          <div style="font-size:48px;">🐱</div>
+          <h3 id="prof-display-name" style="margin-top:8px;">自由冒險家</h3>
+          <p id="prof-email" style="font-size:12px; color:#a0aec0;">本地免登入模式</p>
+          <div style="display:flex; justify-content:space-around; margin-top:20px; border-top:1px solid #edf2f7; padding-top:16px;">
+            <div>
+              <div style="font-size:12px; color:#a0aec0;">累積 XP</div>
+              <div id="prof-xp" style="font-size:20px; font-weight:800; color:#38a169;">0 XP</div>
             </div>
-            <div class="p-stat-item">
-              <span class="p-label">連續學習天數</span>
-              <span class="p-val" id="prof-streak">1 天</span>
+            <div>
+              <div style="font-size:12px; color:#a0aec0;">連續天數</div>
+              <div id="prof-streak" style="font-size:20px; font-weight:800; color:#dd6b20;">1 天</div>
             </div>
           </div>
         </div>
       </section>
     </main>
 
-    <!-- 底部導覽 Tab 列 -->
+    <!-- 底部導覽列 -->
     <nav class="bottom-nav">
       <button class="nav-btn active" data-tab="map">
         <span class="nav-icon">🗺️</span>
-        <span class="nav-label">地圖</span>
+        <span class="nav-label">關卡</span>
       </button>
       <button class="nav-btn" data-tab="cards">
         <span class="nav-icon">🎴</span>
@@ -134,20 +128,18 @@
       </button>
     </nav>
 
-    <!-- 🔒 登入/註冊 Modal 彈窗 (預設隱藏 hidden) -->
+    <!-- 🔒 帳號登入 Modal (預設隱藏 hidden) -->
     <div id="auth-modal" class="auth-overlay hidden">
       <div class="auth-card">
-        <div class="auth-header">
-          <span class="app-logo">🐱</span>
-          <h2>雲端帳號同步</h2>
-          <p>登入 Supabase 帳號可跨裝置同步學習進度與 SRS 記憶紀錄</p>
-        </div>
+        <span style="font-size:40px;">🐱</span>
+        <h2>雲端同步帳號</h2>
+        <p>登入可保存學習進度與經驗值</p>
         <div class="auth-body">
           <input type="email" id="auth-email" placeholder="請輸入 Email" />
           <input type="password" id="auth-pwd" placeholder="請輸入密碼" />
-          <button id="btn-login" class="btn primary">登入 / 註冊帳號</button>
-          <div class="divider"><span>或</span></div>
-          <button id="btn-close-modal" class="btn secondary">關閉 (繼續自由體驗)</button>
+          <button id="btn-login" class="btn primary">登入 / 註冊</button>
+          <div class="divider">或</div>
+          <button id="btn-close-modal" class="btn secondary">繼續自由使用</button>
         </div>
       </div>
     </div>
