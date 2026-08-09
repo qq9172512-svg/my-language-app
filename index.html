@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>多國語言檢定 App</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+  <div class="app-container">
+    <header>
+      <h1>🌍 多國語言學習 App</h1>
+      <select id="lang-select">
+        <option value="ja">日文 (JLPT)</option>
+        <option value="ko">韓文 (TOPIK)</option>
+        <option value="en">英文 (TOEIC)</option>
+        <option value="fr">法文 (DELF)</option>
+        <option value="de">德文 (Goethe)</option>
+        <option value="es">西班牙文 (DELE)</option>
+      </select>
+    </header>
+
+    <nav class="mode-tabs">
+      <button id="tab-vocab" class="active">基礎單字卡</button>
+      <button id="tab-exam">檢定模擬測驗</button>
+    </nav>
+
+    <!-- 單字卡區域 -->
+    <main id="vocab-section" class="section">
+      <div class="card" id="card-box">
+        <h2 id="card-word">載入中...</h2>
+        <p id="card-phonetic"></p>
+        <p id="card-translation" class="hidden"></p>
+        <p id="card-example" class="hidden"></p>
+      </div>
+      <div class="controls">
+        <button id="btn-speak">🔊 聽發音</button>
+        <button id="btn-toggle">👁️ 顯示中文/例句</button>
+        <button id="btn-next-vocab">下一張 ➡️</button>
+      </div>
+    </main>
+
+    <!-- 檢定測驗區域 -->
+    <main id="exam-section" class="section hidden">
+      <div class="quiz-box">
+        <span id="exam-badge" class="badge"></span>
+        <h3 id="quiz-question">載入中...</h3>
+        <div id="quiz-options" class="options-container"></div>
+        <div id="quiz-feedback" class="feedback"></div>
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
