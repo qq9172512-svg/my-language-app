@@ -1,186 +1,578 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>語研大冒險 - 語言學習 App</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="manifest" href="manifest.json" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>語研大冒險 - Language Adventure</title>
+  <style>
+    /* ==================== 全域變數與奶油馬卡龍風格 ==================== */
+    :root {
+      --bg-color: #f7f9fa;
+      --card-bg: #ffffff;
+      --primary: #85d2d0;
+      --primary-hover: #6cbdbb;
+      --accent-pink: #f8b195;
+      --accent-yellow: #f6d55c;
+      --accent-blue: #4ea5d9;
+      --text-main: #2c3e50;
+      --text-muted: #7f8c8d;
+      --border-color: #eef2f5;
+      --shadow: 0 8px 20px rgba(0,0,0,0.04);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+    body { background-color: var(--bg-color); color: var(--text-main); display: flex; justify-content: center; min-height: 100vh; }
+
+    /* App 主容器 */
+    .app-container { width: 100%; max-width: 480px; background: var(--bg-color); display: flex; flex-direction: column; height: 100vh; position: relative; overflow: hidden; box-shadow: 0 0 30px rgba(0,0,0,0.05); }
+
+    /* ==================== 頂部全域導覽列 ==================== */
+    .global-header { background: var(--card-bg); padding: 12px 18px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); z-index: 10; }
+    .user-info { display: flex; align-items: center; gap: 8px; font-weight: bold; font-size: 14px; }
+    .cat-avatar { font-size: 22px; background: #fff3e6; padding: 4px 8px; border-radius: 50%; }
+    .lang-selector { background: #f0f4f8; border: none; padding: 6px 12px; border-radius: 12px; font-weight: bold; color: var(--text-main); cursor: pointer; outline: none; }
+    .stats-badge { display: flex; gap: 10px; font-size: 13px; font-weight: bold; }
+    .stat-item { background: #fff8e7; padding: 4px 10px; border-radius: 20px; color: #d68910; }
+
+    /* ==================== 主要頁面分頁 (Tab Pages) ==================== */
+    .content-area { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: 80px; }
+    .tab-page { display: none; }
+    .tab-page.active { display: block; }
+
+    /* 分頁分流 Segmented Controls */
+    .segmented-control { display: flex; background: #eef2f5; padding: 4px; border-radius: 14px; margin-bottom: 16px; }
+    .segment-btn { flex: 1; border: none; padding: 8px; border-radius: 10px; font-weight: bold; font-size: 13px; background: transparent; color: var(--text-muted); cursor: pointer; transition: 0.2s; }
+    .segment-btn.active { background: var(--card-bg); color: var(--text-main); box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+
+    /* 卡片通用樣式 */
+    .card { background: var(--card-bg); border-radius: var(--radius); padding: 16px; margin-bottom: 14px; box-shadow: var(--shadow); border: 1px solid var(--border-color); }
+
+    /* ==================== Tab 1: 學習與考場 ==================== */
+    .exam-card { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #ffffff 0%, #f4f9f9 100%); border-left: 5px solid var(--primary); }
+    .exam-title { font-weight: bold; font-size: 15px; margin-bottom: 4px; }
+    .exam-desc { font-size: 12px; color: var(--text-muted); }
+    .btn-action { background: var(--primary); color: white; border: none; padding: 8px 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+    .btn-action:hover { background: var(--primary-hover); }
+
+    /* 全真模考全螢幕 Modal (Focus Mode) */
+    .exam-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 100; display: none; flex-direction: column; padding: 16px; overflow-y: auto; }
+    .exam-modal.active { display: flex; }
+    .exam-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 2px solid var(--border-color); margin-bottom: 16px; }
+    .timer { font-weight: bold; color: #e74c3c; font-size: 16px; background: #fadbd8; padding: 4px 10px; border-radius: 8px; }
+    .passage-box { background: #f8f9fa; border-left: 4px solid var(--accent-blue); padding: 12px; font-size: 13px; line-height: 1.5; margin-bottom: 12px; border-radius: 4px; max-height: 150px; overflow-y: auto; }
+    .quiz-opt { width: 100%; text-align: left; background: var(--card-bg); border: 1.5px solid var(--border-color); padding: 12px; border-radius: 12px; margin-bottom: 8px; font-size: 13.5px; cursor: pointer; transition: 0.2s; }
+    .quiz-opt:hover { border-color: var(--primary); background: #f0fdfd; }
+
+    /* ==================== Tab 2: 3D SRS 深度單字卡 ==================== */
+    .flashcard-container { perspective: 1000px; height: 320px; margin-bottom: 16px; }
+    .flashcard { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); cursor: pointer; }
+    .flashcard.flipped { transform: rotateY(180deg); }
+    .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: var(--radius); padding: 24px; display: flex; flex-direction: column; justify-content: space-between; background: var(--card-bg); box-shadow: var(--shadow); border: 1px solid var(--border-color); text-align: center; }
+    .card-back { transform: rotateY(180deg); text-align: left; overflow-y: auto; }
+    .badge { align-self: center; background: #eef8f8; color: var(--primary-hover); font-size: 11px; font-weight: bold; padding: 4px 10px; border-radius: 12px; }
+    .word-title { font-size: 32px; font-weight: bold; color: var(--text-main); margin-top: 20px; }
+    .word-phonetic { font-size: 14px; color: var(--text-muted); margin-top: 4px; }
+    .srs-buttons { display: flex; gap: 8px; }
+    .srs-btn { flex: 1; border: none; padding: 12px 4px; border-radius: 12px; font-weight: bold; font-size: 12px; cursor: pointer; color: white; }
+    .srs-hard { background: var(--accent-pink); }
+    .srs-good { background: var(--accent-yellow); color: #7d6608; }
+    .srs-easy { background: var(--primary); }
+
+    /* ==================== 底部 Navigation Bar ==================== */
+    .bottom-nav { position: absolute; bottom: 0; left: 0; width: 100%; background: var(--card-bg); display: flex; border-top: 1px solid var(--border-color); padding: 8px 0; z-index: 10; }
+    .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; font-size: 10px; font-weight: bold; color: var(--text-muted); cursor: pointer; gap: 3px; }
+    .nav-item.active { color: var(--primary-hover); }
+    .nav-icon { font-size: 20px; }
+  </style>
 </head>
 <body>
-  <div id="app">
-    <!-- 頂部列 -->
-    <header class="top-bar">
-      <div class="user-status">
-        <span class="avatar">🐱</span>
-        <div>
-          <div class="user-name" id="user-name">自由冒險家</div>
-          <div class="sync-tag" id="sync-indicator">👤 本地模式</div>
-        </div>
-      </div>
-      <div class="stats-group">
-        <div class="stat-badge">🔥 <span id="streak-val">1</span> 天</div>
-        <div class="stat-badge">⭐ <span id="xp-val">0</span> XP</div>
-        <button id="btn-logout" class="icon-btn" title="帳號 / 登入">⚙️</button>
-      </div>
-    </header>
 
-    <!-- 主頁面 -->
-    <main class="content-area">
-      <!-- Tab 1: 地圖關卡 -->
-      <section id="tab-map" class="tab-page">
-        <div class="lang-selector-wrapper">
-          <label for="lang-select" style="font-weight:700; font-size:14px; color:#4a5568;">選擇學習語言：</label>
-          <select id="lang-select">
-            <option value="ja">🇯🇵 日語 (JLPT N5)</option>
-            <option value="ko">🇰🇷 韓語 (TOPIK I)</option>
-            <option value="en">🇺🇸 英語 (生活實用)</option>
-            <option value="fr">🇫🇷 法語 (DELF A1)</option>
-            <option value="de">🇩🇪 德語 (Goethe A1)</option>
-            <option value="es">🇪🇸 西班牙語 (DELE A1)</option>
-          </select>
-        </div>
-        <h2 class="section-title">🗺️ 冒險關卡地圖</h2>
-        <div id="map-nodes-container" class="map-nodes"></div>
-      </section>
-
-      <!-- Tab 2: 3D 單字卡 -->
-      <section id="tab-cards" class="tab-page hidden">
-        <div class="cards-header">
-          <h2 class="section-title" style="margin:0;">🎴 智慧單字卡</h2>
-          <span class="pending-badge">剩餘：<span id="srs-pending-count">0</span> 個</span>
-        </div>
-
-        <div class="flashcard-container">
-          <div class="flashcard" id="active-card">
-            <!-- 正面 -->
-            <div class="card-face card-front">
-              <span class="card-tag" id="card-cat">日常</span>
-              <div class="card-main-word" id="card-word">...</div>
-              <div class="card-sub-reading" id="card-reading">...</div>
-              <button class="audio-btn" id="btn-audio">🔊 點擊發音</button>
-              <p class="flip-hint">👆 點擊卡片翻看釋義與例句</p>
-            </div>
-            <!-- 背面 -->
-            <div class="card-face card-back">
-              <div class="card-meaning-title">中文釋義</div>
-              <div class="card-meaning-text" id="card-meaning">...</div>
-              <div class="example-box">
-                <p id="card-ex-src" class="ex-src">...</p>
-                <p id="card-ex-tgt" class="ex-tgt">...</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- SRS 記憶評分按鈕 -->
-        <div class="srs-controls">
-          <button class="srs-btn hard" id="srs-btn-hard">🔴 有點難</button>
-          <button class="srs-btn good" id="srs-btn-good">🟡 還記得</button>
-          <button class="srs-btn easy" id="srs-btn-easy">🟢 超簡單</button>
-        </div>
-      </section>
-
-      <!-- Tab 3: 趣味遊戲中心 -->
-      <section id="tab-game" class="tab-page hidden">
-        <h2 class="section-title">🎮 趣味遊戲中心</h2>
-        
-        <!-- 遊戲模式切換按鈕組 -->
-        <div class="game-mode-selector">
-          <button class="game-mode-btn active" id="mode-match-btn">🧩 單字連連看</button>
-          <button class="game-mode-btn" id="mode-audio-btn">🎯 聽音辨字</button>
-          <button class="game-mode-btn" id="mode-swipe-btn">⚡ 快速衝刺</button>
-        </div>
-
-        <!-- 1. 單字連連看 -->
-        <div id="game-match-view" class="game-container">
-          <p class="game-desc">將單字與對應中文點擊配對，賺取 15 XP！</p>
-          <button id="btn-start-game" class="btn primary">開始連連看</button>
-          <div id="game-board" class="game-grid hidden"></div>
-        </div>
-
-        <!-- 2. 聽音辨字 -->
-        <div id="game-audio-view" class="game-container hidden">
-          <p class="game-desc">點擊發音按鈕聽語音，選出正確的中文解釋！</p>
-          <div class="audio-quiz-card">
-            <button id="btn-play-quiz-sound" class="big-audio-btn">🔊 點擊播放發音</button>
-            <div id="audio-options-container" class="options-grid"></div>
-          </div>
-        </div>
-
-        <!-- 3. 快速滑卡判斷 -->
-        <div id="game-swipe-view" class="game-container hidden">
-          <p class="game-desc">快速判斷顯示的單字與中文釋義是否完全匹配！</p>
-          <div class="swipe-quiz-card">
-            <div id="swipe-word" class="swipe-word">Loading...</div>
-            <div id="swipe-meaning" class="swipe-meaning">...</div>
-            <div class="swipe-btn-group">
-              <button id="btn-swipe-false" class="swipe-action-btn btn-wrong">❌ 錯誤</button>
-              <button id="btn-swipe-true" class="swipe-action-btn btn-correct">⭕ 正確</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Tab 4: 個人檔案 -->
-      <section id="tab-profile" class="tab-page hidden">
-        <h2 class="section-title">👤 冒險家成就</h2>
-        <div style="background:#fff; padding:20px; border-radius:20px; border:2px solid #e2e8f0; text-align:center;">
-          <div style="font-size:48px;">🐱</div>
-          <h3 id="prof-display-name" style="margin-top:8px;">自由冒險家</h3>
-          <p id="prof-email" style="font-size:12px; color:#a0aec0;">本地免登入模式</p>
-          <div style="display:flex; justify-content:space-around; margin-top:20px; border-top:1px solid #edf2f7; padding-top:16px;">
-            <div>
-              <div style="font-size:12px; color:#a0aec0;">累積 XP</div>
-              <div id="prof-xp" style="font-size:20px; font-weight:800; color:#38a169;">0 XP</div>
-            </div>
-            <div>
-              <div style="font-size:12px; color:#a0aec0;">連續天數</div>
-              <div id="prof-streak" style="font-size:20px; font-weight:800; color:#dd6b20;">1 天</div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <!-- 底部導覽列 -->
-    <nav class="bottom-nav">
-      <button class="nav-btn active" data-tab="map">
-        <span class="nav-icon">🗺️</span>
-        <span class="nav-label">關卡</span>
-      </button>
-      <button class="nav-btn" data-tab="cards">
-        <span class="nav-icon">🎴</span>
-        <span class="nav-label">單字卡</span>
-      </button>
-      <button class="nav-btn" data-tab="game">
-        <span class="nav-icon">🎮</span>
-        <span class="nav-label">遊戲</span>
-      </button>
-      <button class="nav-btn" data-tab="profile">
-        <span class="nav-icon">👤</span>
-        <span class="nav-label">我的</span>
-      </button>
-    </nav>
-
-    <!-- 🔒 帳號登入 Modal (預設隱藏 hidden) -->
-    <div id="auth-modal" class="auth-overlay hidden">
-      <div class="auth-card">
-        <span style="font-size:40px;">🐱</span>
-        <h2>雲端同步帳號</h2>
-        <p>登入可保存學習進度與經驗值</p>
-        <div class="auth-body">
-          <input type="email" id="auth-email" placeholder="請輸入 Email" />
-          <input type="password" id="auth-pwd" placeholder="請輸入密碼" />
-          <button id="btn-login" class="btn primary">登入 / 註冊</button>
-          <div class="divider">或</div>
-          <button id="btn-close-modal" class="btn secondary">繼續自由使用</button>
-        </div>
-      </div>
+<div class="app-container">
+  
+  <!-- 頂部全域導覽列 -->
+  <header class="global-header">
+    <div class="user-info">
+      <span class="cat-avatar">🐱</span>
+      <select class="lang-selector" id="lang-select" onchange="changeLanguage(this.value)">
+        <option value="en_toeic">🇺🇸 英文 - TOEIC 多益</option>
+        <option value="en_ielts">🇺🇸 英文 - IELTS 雅思</option>
+        <option value="en_toefl">🇺🇸 英文 - TOEFL 托福</option>
+        <option value="ja_jlpt">🇯🇵 日文 - JLPT 檢定</option>
+        <option value="kr_topik">🇰🇷 韓文 - TOPIK 檢定</option>
+        <option value="eu_delf">🇫🇷 法/德/西 - CEFR 檢定</option>
+      </select>
     </div>
+    <div class="stats-badge">
+      <div class="stat-item">🔥 <span id="streak-days">5</span> 天</div>
+      <div class="stat-item">⭐ <span id="user-xp">320</span> XP</div>
+    </div>
+  </header>
+
+  <!-- 頁面內容區 -->
+  <main class="content-area">
+
+    <!-- TAB 1: 學習大廳 & 全真考場 -->
+    <section id="tab-learn" class="tab-page active">
+      <div class="segmented-control">
+        <button class="segment-btn active" onclick="switchLearnSubTab('exam')">🎯 檢定全真考場</button>
+        <button class="segment-btn" onclick="switchLearnSubTab('base')">🌱 基礎打底與句庫</button>
+      </div>
+
+      <!-- 子分頁：全真考場 -->
+      <div id="sub-learn-exam">
+        <div id="exam-list-container">
+          <!-- 動態載入檢定考場卡片 -->
+        </div>
+      </div>
+
+      <!-- 子分頁：基礎打底與情境句庫 -->
+      <div id="sub-learn-base" style="display: none;">
+        <div class="card">
+          <h3>🔤 基礎字母與發音法則</h3>
+          <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">掌握語音變化、重音與連音規則</p>
+          <div id="alphabet-rules" style="margin-top: 10px; font-size: 13px; line-height: 1.6;"></div>
+        </div>
+        <div class="card">
+          <h3>💬 實用情境句子庫</h3>
+          <div id="sentence-list" style="margin-top: 10px;"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: 3D SRS 深度單字本 -->
+    <section id="tab-vocab" class="tab-page">
+      <div style="text-align: center; margin-bottom: 12px; font-size: 13px; color: var(--text-muted);">
+        點擊卡片可翻轉查看詳細解析與全真例句
+      </div>
+      <div class="flashcard-container">
+        <div class="flashcard" id="active-card" onclick="flipCard()">
+          <div class="card-face card-front">
+            <span class="badge" id="card-level">TOEIC 750+</span>
+            <div>
+              <div class="word-title" id="card-word">Implement</div>
+              <div class="word-phonetic" id="card-phonetic">/ˈɪm.plə.ment/</div>
+            </div>
+            <button class="btn-action" style="align-self: center;" onclick="event.stopPropagation(); speakCurrentWord();">🔊 聽發音</button>
+          </div>
+          <div class="card-face card-back">
+            <div style="font-size: 12px; color: var(--primary-hover); font-weight: bold; margin-bottom: 4px;" id="card-pos">動詞 (v.)</div>
+            <h3 style="margin-bottom: 8px;" id="card-meaning">實施；執行</h3>
+            <p style="font-size: 12px; font-weight: bold; color: var(--text-main); margin-top: 8px;">全真考題例句：</p>
+            <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;" id="card-example-en">The board decided to implement the new market strategy immediately.</p>
+            <p style="font-size: 12px; color: var(--text-muted);" id="card-example-zh">董事會決定立即實施新的市場策略。</p>
+          </div>
+        </div>
+      </div>
+      <!-- SRS 記憶評分按鈕 -->
+      <div class="srs-buttons">
+        <button class="srs-btn srs-hard" onclick="rateSRS(1)">🔴 有點難</button>
+        <button class="srs-btn srs-good" onclick="rateSRS(3)">🟡 還記得</button>
+        <button class="srs-btn srs-easy" onclick="rateSRS(5)">🟢 超簡單</button>
+      </div>
+    </section>
+
+    <!-- TAB 3: 🎮 遊戲中心 -->
+    <section id="tab-games" class="tab-page">
+      <div class="card" style="text-align: center;">
+        <span style="font-size: 40px;">🐱</span>
+        <h3 style="margin-top: 8px;">單字配對連連看</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin: 6px 0 12px 0;">快速配對單字與中文，賺取 +15 XP！</p>
+        <button class="btn-action" onclick="startMatchGame()">開始挑戰</button>
+      </div>
+      <div id="game-board" class="card" style="display: none;"></div>
+    </section>
+
+    <!-- TAB 4: 👤 個人中心與錯題本 -->
+    <section id="tab-profile" class="tab-page">
+      <div class="card">
+        <h3>📊 學習數據統計</h3>
+        <div style="display: flex; justify-content: space-around; margin-top: 12px; text-align: center;">
+          <div><div style="font-size: 20px; font-weight: bold; color: var(--primary);" id="prof-xp">320</div><div style="font-size: 11px; color: var(--text-muted);">總 XP</div></div>
+          <div><div style="font-size: 20px; font-weight: bold; color: var(--accent-pink);" id="prof-streak">5 天</div><div style="font-size: 11px; color: var(--text-muted);">連續登入</div></div>
+          <div><div style="font-size: 20px; font-weight: bold; color: var(--accent-blue);" id="prof-wrong-count">0</div><div style="font-size: 11px; color: var(--text-muted);">錯題數量</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>⚠️ 個人弱點與錯題本</h3>
+        <div id="wrong-questions-list" style="margin-top: 10px; font-size: 12px; color: var(--text-muted);">
+          目前沒有寫錯的題目，繼續保持！
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 全真模擬考 滿版 Focus Modal -->
+  <div class="exam-modal" id="exam-modal">
+    <div class="exam-header">
+      <h3 id="exam-modal-title" style="font-size: 15px;">全真模擬測驗</h3>
+      <div class="timer">⏱️ <span id="exam-timer">--:--</span></div>
+    </div>
+    <div id="exam-quiz-content">
+      <!-- 考題動態渲染區 -->
+    </div>
+    <button class="btn-action" style="background: #e74c3c; margin-top: auto;" onclick="closeExamModal()">結束並交卷</button>
   </div>
 
-  <script src="app.js"></script>
+  <!-- 底部四分頁導覽列 -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" onclick="switchTab('learn', this)">
+      <span class="nav-icon">🗺️</span>
+      <span>學習考場</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('vocab', this)">
+      <span class="nav-icon">🎴</span>
+      <span>深度單字</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('games', this)">
+      <span class="nav-icon">🎮</span>
+      <span>遊戲中心</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('profile', this)">
+      <span class="nav-icon">👤</span>
+      <span>個人成就</span>
+    </div>
+  </nav>
+
+</div>
+
+<script>
+// ==================== 全網精選檢定題庫與深度單字資料庫 ====================
+const appDatabase = {
+  en_toeic: {
+    exams: [
+      {
+        id: 'toeic_full_1',
+        title: 'TOEIC Listening & Reading 官方模擬試題',
+        desc: '包含 Part 1-7 全題型還原與倒數計時',
+        duration: 1200, // 20分鐘簡版模擬
+        questions: [
+          {
+            type: 'listening',
+            title: 'Part 1: 照片描述題',
+            audioText: 'Look at the picture. (A) He is reviewing a financial report. (B) He is repairing a computer. (C) He is clearing his desk.',
+            passage: '[聽力題型] 畫面上僅顯示圖片，聲音播放完畢後請選擇最佳描述。',
+            options: ['(A) He is reviewing a financial report.', '(B) He is repairing a computer.', '(C) He is clearing his desk.'],
+            answer: 0,
+            explanation: '圖片中人士正專注看著財務報表，故選 (A)。'
+          },
+          {
+            type: 'reading',
+            title: 'Part 5: 句子填空題',
+            passage: 'All department managers are required to submit their budget proposals _______ Friday afternoon.',
+            options: ['(A) until', '(B) by', '(C) on', '(D) in'],
+            answer: 1,
+            explanation: '表示「在某時間截止點之前完成」須使用介系詞 by。'
+          }
+        ]
+      }
+    ],
+    baseRules: '<b>多益高分聽力法則：</b>注意連音（Like it -> Li-kit）與消音現象（Next door -> Nex-door）。',
+    sentences: [
+      { en: 'Could you please forward me the meeting minutes?', zh: '能否請您將會議記錄轉發給我？' },
+      { en: 'The travel expenses will be reimbursed next week.', zh: '差旅費用將於下週核銷。' }
+    ],
+    vocabs: [
+      { word: 'Implement', phonetic: '/ˈɪm.plə.ment/', pos: '動詞 (v.)', meaning: '實施；執行', level: 'TOEIC 750+', exEn: 'The company will implement new safety rules.', exZh: '公司將實施新的安全規定。' },
+      { word: 'Negotiation', phonetic: '/nɪˌɡoʊ.ʃiˈeɪ.ʃən/', pos: '名詞 (n.)', meaning: '談判；協商', level: 'TOEIC 850+', exEn: 'The contract is under negotiation.', exZh: '合約正在談判中。' }
+    ]
+  },
+  en_ielts: {
+    exams: [
+      {
+        id: 'ielts_full_1',
+        title: 'IELTS Academic 學術類全真閱讀測驗',
+        desc: '含 True/False/Not Given 與文章比對題型',
+        duration: 1500,
+        questions: [
+          {
+            type: 'reading',
+            title: 'Reading Task: True / False / Not Given',
+            passage: 'The Industrial Revolution transformed societies from agrarian to industrial, completely altering daily human routines.',
+            question: 'Statement: Human daily routines were completely unaffected by the Industrial Revolution.',
+            options: ['TRUE', 'FALSE', 'NOT GIVEN'],
+            answer: 1,
+            explanation: '文章說明工業革命完全改變了人類日常，與題目敘述相反，故為 FALSE。'
+          }
+        ]
+      }
+    ],
+    baseRules: '<b>雅思寫作高分關鍵：</b>使用學術銜接詞（Furthermore, On the contrary）。',
+    sentences: [
+      { en: 'The graph illustrates a dramatic increase in renewable energy adoption.', zh: '該圖表展示了可再生能源採用率的劇烈增長。' }
+    ],
+    vocabs: [
+      { word: 'Fluctuate', phonetic: '/ˈflʌk.tʃu.eɪt/', pos: '動詞 (v.)', meaning: '波動；起伏', level: 'IELTS 6.5+', exEn: 'Prices tend to fluctuate in summer.', exZh: '價格在夏季往往會有所波動。' }
+    ]
+  },
+  ja_jlpt: {
+    exams: [
+      {
+        id: 'jlpt_n5_1',
+        title: 'JLPT N5 言語知識・讀解 模擬試題',
+        desc: '文字、語彙、文法與基礎長文理解',
+        duration: 1200,
+        questions: [
+          {
+            type: 'reading',
+            title: '問題1：言葉のよみかた',
+            passage: 'わたしは 毎日 <u>学校</u> へ 行きます。',
+            options: ['1. がっこう', '2. かっこう', '3. がこう', '4. かこう'],
+            answer: 0,
+            explanation: '「学校」的日文讀音為「がっこう」。'
+          }
+        ]
+      }
+    ],
+    baseRules: '<b>五十音重音法則：</b>高低音調 (Pitch Accent) 會改變詞義，例如「雨 (あめ High-Low)」與「飴 (あめ Low-High)」。',
+    sentences: [
+      { en: 'すみません、駅はどこですか。', zh: '不好意思，請問車站在哪裡？' }
+    ],
+    vocabs: [
+      { word: '勉強', phonetic: 'べんきょう', pos: '名詞/サ變動詞', meaning: '學習；讀書', level: 'JLPT N5', exEn: '日本語を勉強します。', exZh: '我學習日文。' }
+    ]
+  }
+};
+
+// ==================== 狀態管理 ====================
+let currentLangKey = 'en_toeic';
+let currentVocabIdx = 0;
+let userProfile = { xp: 320, streak: 5, wrongQuestions: [] };
+let examTimerInterval = null;
+
+// ==================== 初始化與頁面切換 ====================
+function init() {
+  renderLanguageData();
+}
+
+function switchTab(tabId, el) {
+  document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+  document.querySelectorAll('.tab-page').forEach(page => page.classList.remove('active'));
+
+  el.classList.add('active');
+  document.getElementById(`tab-${tabId}`).classList.add('active');
+}
+
+function switchLearnSubTab(subType) {
+  const btns = document.querySelectorAll('.segmented-control .segment-btn');
+  btns.forEach(b => b.classList.remove('active'));
+
+  if (subType === 'exam') {
+    btns[0].classList.add('active');
+    document.getElementById('sub-learn-exam').style.display = 'block';
+    document.getElementById('sub-learn-base').style.display = 'none';
+  } else {
+    btns[1].classList.add('active');
+    document.getElementById('sub-learn-exam').style.display = 'none';
+    document.getElementById('sub-learn-base').style.display = 'block';
+  }
+}
+
+function changeLanguage(langKey) {
+  currentLangKey = langKey;
+  currentVocabIdx = 0;
+  renderLanguageData();
+}
+
+// ==================== 資料渲染邏輯 ====================
+function renderLanguageData() {
+  const data = appDatabase[currentLangKey] || appDatabase['en_toeic'];
+
+  // 1. 渲染檢定考場卡片
+  const examContainer = document.getElementById('exam-list-container');
+  examContainer.innerHTML = '';
+  data.exams.forEach(exam => {
+    examContainer.innerHTML += `
+      <div class="card exam-card">
+        <div>
+          <div class="exam-title">${exam.title}</div>
+          <div class="exam-desc">${exam.desc}</div>
+        </div>
+        <button class="btn-action" onclick="openExamModal('${exam.id}')">進入考場</button>
+      </div>
+    `;
+  });
+
+  // 2. 渲染基礎發音與句庫
+  document.getElementById('alphabet-rules').innerHTML = data.baseRules || '基礎發音規則載入中...';
+  const sentenceContainer = document.getElementById('sentence-list');
+  sentenceContainer.innerHTML = '';
+  (data.sentences || []).forEach(s => {
+    sentenceContainer.innerHTML += `
+      <div style="margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px dashed var(--border-color);">
+        <div style="font-weight: bold; font-size: 13px; color: var(--primary-hover);">${s.en}</div>
+        <div style="font-size: 12px; color: var(--text-muted);">${s.zh}</div>
+      </div>
+    `;
+  });
+
+  // 3. 渲染深度單字卡
+  renderVocabCard();
+}
+
+function renderVocabCard() {
+  const data = appDatabase[currentLangKey] || appDatabase['en_toeic'];
+  const vocab = data.vocabs[currentVocabIdx] || data.vocabs[0];
+
+  document.getElementById('active-card').classList.remove('flipped');
+  document.getElementById('card-level').innerText = vocab.level;
+  document.getElementById('card-word').innerText = vocab.word;
+  document.getElementById('card-phonetic').innerText = vocab.phonetic;
+  document.getElementById('card-pos').innerText = vocab.pos;
+  document.getElementById('card-meaning').innerText = vocab.meaning;
+  document.getElementById('card-example-en').innerText = vocab.exEn;
+  document.getElementById('card-example-zh').innerText = vocab.exZh;
+}
+
+// ==================== 3D 單字卡與 SRS 互動 ====================
+function flipCard() {
+  document.getElementById('active-card').classList.toggle('flipped');
+}
+
+function speakCurrentWord() {
+  const data = appDatabase[currentLangKey] || appDatabase['en_toeic'];
+  const word = data.vocabs[currentVocabIdx]?.word;
+  if (!word || !('speechSynthesis' in window)) return;
+
+  const utter = new SpeechSynthesisUtterance(word);
+  utter.lang = currentLangKey.startsWith('ja') ? 'ja-JP' : 'en-US';
+  window.speechSynthesis.speak(utter);
+}
+
+function rateSRS(score) {
+  userProfile.xp += score * 2;
+  updateStatsUI();
+
+  const data = appDatabase[currentLangKey] || appDatabase['en_toeic'];
+  currentVocabIdx = (currentVocabIdx + 1) % data.vocabs.length;
+  renderVocabCard();
+}
+
+// ==================== 全真模擬考系統 (Focus Modal) ====================
+function openExamModal(examId) {
+  const data = appDatabase[currentLangKey] || appDatabase['en_toeic'];
+  const exam = data.exams.find(e => e.id === examId);
+  if (!exam) return;
+
+  document.getElementById('exam-modal-title').innerText = exam.title;
+  const quizContainer = document.getElementById('exam-quiz-content');
+  quizContainer.innerHTML = '';
+
+  exam.questions.forEach((q, idx) => {
+    quizContainer.innerHTML += `
+      <div class="card">
+        <div style="font-weight: bold; font-size: 14px; margin-bottom: 6px;">${idx + 1}. ${q.title}</div>
+        ${q.passage ? `<div class="passage-box">${q.passage}</div>` : ''}
+        <p style="font-size: 13px; margin-bottom: 8px;">${q.question || ''}</p>
+        ${q.options.map((opt, oIdx) => `<button class="quiz-opt" onclick="checkExamAnswer('${examId}', ${idx}, ${oIdx})">${opt}</button>`).join('')}
+      </div>
+    `;
+  });
+
+  document.getElementById('exam-modal').classList.add('active');
+
+  // 開始倒數計時
+  let timeLeft = exam.duration;
+  clearInterval(examTimerInterval);
+  examTimerInterval = setInterval(() => {
+    timeLeft--;
+    const m = Math.floor(timeLeft / 60);
+    const s = timeLeft % 60;
+    document.getElementById('exam-timer').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+    if (timeLeft <= 0) {
+      clearInterval(examTimerInterval);
+      alert('⏱️ 考試時間到！系統已自動交卷。');
+      closeExamModal();
+    }
+  }, 1000);
+}
+
+function checkExamAnswer(examId, qIdx, selectedOptIdx) {
+  const data = appDatabase[currentLangKey] || appDatabase['en_toeic'];
+  const exam = data.exams.find(e => e.id === examId);
+  const q = exam.questions[qIdx];
+
+  if (selectedOptIdx === q.answer) {
+    alert(`🎉 答對了！\n\n解析：${q.explanation}`);
+    userProfile.xp += 20;
+  } else {
+    alert(`❌ 答錯了！正確答案是選項 (${q.answer + 1})\n\n解析：${q.explanation}`);
+    userProfile.wrongQuestions.push({ q: q.title, explanation: q.explanation });
+  }
+  updateStatsUI();
+}
+
+function closeExamModal() {
+  clearInterval(examTimerInterval);
+  document.getElementById('exam-modal').classList.remove('active');
+}
+
+// ==================== 🎮 遊戲中心：單字連連看 ====================
+function startMatchGame() {
+  const board = document.getElementById('game-board');
+  board.style.display = 'block';
+  board.innerHTML = '<p style="font-size: 13px; font-weight: bold; margin-bottom: 8px;">請點擊配對單字與中文：</p>';
+
+  const data = appDatabase[currentLangKey] || appDatabase['en_toeic'];
+  const items = data.vocabs.slice(0, 3);
+  let cards = [];
+  items.forEach(item => {
+    cards.push({ text: item.word, matchId: item.word });
+    cards.push({ text: item.meaning, matchId: item.word });
+  });
+  cards.sort(() => Math.random() - 0.5);
+
+  let selected = null;
+  cards.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'quiz-opt';
+    btn.style.display = 'inline-block';
+    btn.style.width = '48%';
+    btn.style.margin = '1%';
+    btn.innerText = c.text;
+    btn.onclick = () => {
+      if (!selected) {
+        selected = { btn, matchId: c.matchId };
+        btn.style.borderColor = 'var(--primary)';
+      } else {
+        if (selected.matchId === c.matchId && selected.btn !== btn) {
+          btn.style.background = '#d4efdf';
+          selected.btn.style.background = '#d4efdf';
+          userProfile.xp += 15;
+          updateStatsUI();
+        } else {
+          selected.btn.style.borderColor = 'var(--border-color)';
+        }
+        selected = null;
+      }
+    };
+    board.appendChild(btn);
+  });
+}
+
+// ==================== 更新數據 UI ====================
+function updateStatsUI() {
+  document.getElementById('user-xp').innerText = userProfile.xp;
+  document.getElementById('streak-days').innerText = userProfile.streak;
+  document.getElementById('prof-xp').innerText = userProfile.xp;
+  document.getElementById('prof-streak').innerText = `${userProfile.streak} 天`;
+  document.getElementById('prof-wrong-count').innerText = userProfile.wrongQuestions.length;
+
+  const wrongContainer = document.getElementById('wrong-questions-list');
+  if (userProfile.wrongQuestions.length > 0) {
+    wrongContainer.innerHTML = userProfile.wrongQuestions.map((wq, i) => `
+      <div style="margin-bottom: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 4px;">
+        <div style="font-weight: bold; color: #e74c3c;">${i + 1}. ${wq.q}</div>
+        <div>${wq.explanation}</div>
+      </div>
+    `).join('');
+  }
+}
+
+// 初始化啟動
+window.onload = init;
+</script>
+
 </body>
 </html>
