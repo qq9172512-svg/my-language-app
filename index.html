@@ -82,12 +82,45 @@
         </div>
       </section>
 
-      <!-- Tab 3: 配對小遊戲 -->
+      <!-- Tab 3: 趣味遊戲中心 -->
       <section id="tab-game" class="tab-page hidden">
-        <h2 class="section-title">🎮 單字連連看</h2>
-        <p style="font-size:13px; color:#718096; margin-bottom:12px;">將單字與對應中文點擊配對，賺取 15 XP！</p>
-        <button id="btn-start-game" class="btn primary">開始全新一局</button>
-        <div id="game-board" class="game-grid hidden"></div>
+        <h2 class="section-title">🎮 趣味遊戲中心</h2>
+        
+        <!-- 遊戲模式切換按鈕組 -->
+        <div class="game-mode-selector">
+          <button class="game-mode-btn active" id="mode-match-btn">🧩 單字連連看</button>
+          <button class="game-mode-btn" id="mode-audio-btn">🎯 聽音辨字</button>
+          <button class="game-mode-btn" id="mode-swipe-btn">⚡ 快速衝刺</button>
+        </div>
+
+        <!-- 1. 單字連連看 -->
+        <div id="game-match-view" class="game-container">
+          <p class="game-desc">將單字與對應中文點擊配對，賺取 15 XP！</p>
+          <button id="btn-start-game" class="btn primary">開始連連看</button>
+          <div id="game-board" class="game-grid hidden"></div>
+        </div>
+
+        <!-- 2. 聽音辨字 -->
+        <div id="game-audio-view" class="game-container hidden">
+          <p class="game-desc">點擊發音按鈕聽語音，選出正確的中文解釋！</p>
+          <div class="audio-quiz-card">
+            <button id="btn-play-quiz-sound" class="big-audio-btn">🔊 點擊播放發音</button>
+            <div id="audio-options-container" class="options-grid"></div>
+          </div>
+        </div>
+
+        <!-- 3. 快速滑卡判斷 -->
+        <div id="game-swipe-view" class="game-container hidden">
+          <p class="game-desc">快速判斷顯示的單字與中文釋義是否完全匹配！</p>
+          <div class="swipe-quiz-card">
+            <div id="swipe-word" class="swipe-word">Loading...</div>
+            <div id="swipe-meaning" class="swipe-meaning">...</div>
+            <div class="swipe-btn-group">
+              <button id="btn-swipe-false" class="swipe-action-btn btn-wrong">❌ 錯誤</button>
+              <button id="btn-swipe-true" class="swipe-action-btn btn-correct">⭕ 正確</button>
+            </div>
+          </div>
+        </div>
       </section>
 
       <!-- Tab 4: 個人檔案 -->
