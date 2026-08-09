@@ -1,99 +1,99 @@
-const langConfigs = {
-  ja: { levels: ["JLPT N5 (入門)", "JLPT N4 (初級)", "JLPT N3 (中級)", "JLPT N2 (中高)", "JLPT N1 (高級)"], examTime: 2400, passScore: 80 },
-  ko: { levels: ["TOPIK I (1級)", "TOPIK I (2級)", "TOPIK II (3~6級)"], examTime: 3600, passScore: 80 },
-  en: { levels: ["TOEIC 入門(300+)", "TOEIC 中級(500+)", "TOEIC 高階(700+)"], examTime: 2700, passScore: 70 },
-  fr: { levels: ["DELF A1", "DELF A2", "DELF B1"], examTime: 1800, passScore: 60 },
-  de: { levels: ["Goethe A1", "Goethe A2", "Goethe B1"], examTime: 1800, passScore: 60 },
-  es: { levels: ["DELE A1", "DELE A2", "DELE B1"], examTime: 2700, passScore: 60 }
+const langData = {
+  ja: { levels: ["JLPT N5", "JLPT N4", "JLPT N3", "JLPT N2", "JLPT N1"], pass: 80, time: 2400 },
+  ko: { levels: ["TOPIK I (1級)", "TOPIK I (2級)", "TOPIK II"], pass: 80, time: 3600 },
+  en: { levels: ["TOEIC 入門(300+)", "TOEIC 中級(500+)", "TOEIC 高階(700+)"], pass: 70, time: 2700 },
+  fr: { levels: ["DELF A1", "DELF A2", "DELF B1"], pass: 60, time: 1800 },
+  de: { levels: ["Goethe A1", "Goethe A2", "Goethe B1"], pass: 60, time: 1800 },
+  es: { levels: ["DELE A1", "DELE A2", "DELE B1"], pass: 60, time: 2700 }
 };
 
-let userProgress = JSON.parse(localStorage.getItem('lang_user_progress')) || {
+let userState = JSON.parse(localStorage.getItem('user_lang_state_v2')) || {
   ja: 0, ko: 0, en: 0, fr: 0, de: 0, es: 0, xp: 0
 };
 
 let currentLang = 'ja';
-let examsData = [];
 let vocabsData = [];
+let examsData = [];
 let examTimer = null;
-let timeRemaining = 0;
-let userExamAnswers = {};
-let currentQIndex = 0;
+let timeRemain = 0;
+let userAnswers = {};
+let currentQIdx = 0;
 
 async function init() {
   try {
     const vRes = await fetch('data/basic_vocabs.json');
     vocabsData = (await vRes.json()).categories;
-
     const eRes = await fetch('data/exam_questions.json');
     examsData = (await eRes.json()).exams;
 
-    setupEvents();
-    renderLevelPath();
-    updateUserStatsUI();
-  } catch(err) { console.error("加載失敗:", err); }
+    bindEvents();
+    renderPath();
+    updateUI();
+  } catch(e) { console.error("Data load err:", e); }
 }
 
-function setupEvents() {
-  document.getElementById('lang-select').addEventListener('change', (e) => {
+function bindEvents() {
+  document.getElementById('lang-select').onchange = (e) => {
     currentLang = e.target.value;
-    renderLevelPath();
+    renderPath();
     updateExamIntro();
-  });
-
-  document.getElementById('tab-path').onclick = () => switchTab('path');
-  document.getElementById('tab-game').onclick = () => switchTab('game');
-  document.getElementById('tab-exam').onclick = () => { switchTab('exam'); updateExamIntro(); };
-
-  document.getElementById('btn-game-match').onclick = startMatchGame;
-  document.getElementById('btn-close-match').onclick = () => {
-    document.getElementById('match-game-area').classList.add('hidden');
   };
 
-  document.getElementById('btn-start-official-exam').onclick = startOfficialExam;
-  document.getElementById('btn-submit-exam').onclick = submitOfficialExam;
-  document.getElementById('btn-finish-report').onclick = () => {
-    document.getElementById('exam-report-card').classList.add('hidden');
-    document.getElementById('exam-intro-box').classList.remove('hidden');
-    switchTab('path');
+  document.getElementById('tab-path').onclick = () => showTab('path');
+  document.getElementById('tab-game').onclick = () => showTab('game');
+  document.getElementById('tab-exam').onclick = () => { showTab('exam'); updateExamIntro(); };
+
+  document.getElementById('btn-play-match').onclick = startMatchGame;
+  document.getElementById('btn-close-game').onclick = () => {
+    document.getElementById('game-board').classList.add('hidden');
   };
 
-  document.getElementById('btn-prev-q').onclick = () => { if(currentQIndex > 0) { currentQIndex--; renderExamQuestion(); } };
-  document.getElementById('btn-next-q').onclick = () => { 
-    const questions = getQuestions();
-    if(currentQIndex < questions.length - 1) { currentQIndex++; renderExamQuestion(); } 
+  document.getElementById('btn-start-exam').onclick = startExam;
+  document.getElementById('btn-submit-exam').onclick = submitExam;
+  document.getElementById('btn-back-map').onclick = () => {
+    document.getElementById('exam-result-card').classList.add('hidden');
+    document.getElementById('exam-start-card').classList.remove('hidden');
+    showTab('path');
+  };
+
+  document.getElementById('btn-prev-q').onclick = () => { if(currentQIdx > 0) { currentQIdx--; renderQuestion(); } };
+  document.getElementById('btn-next-q').onclick = () => {
+    const qList = getQuestions();
+    if(currentQIdx < qList.length - 1) { currentQIdx++; renderQuestion(); }
   };
 }
 
-function switchTab(tab) {
+function showTab(name) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
-  document.getElementById(`tab-${tab}`).classList.add('active');
-  document.getElementById(`${tab}-section`).classList.remove('hidden');
+  document.querySelectorAll('.sec-box').forEach(s => s.classList.add('hidden'));
+
+  document.getElementById(`tab-${name}`).classList.add('active');
+  document.getElementById(`${name}-sec`).classList.remove('hidden');
 }
 
-function renderLevelPath() {
-  const container = document.getElementById('level-path-nodes');
+function renderPath() {
+  const container = document.getElementById('map-nodes');
   container.innerHTML = '';
-  const levels = langConfigs[currentLang].levels;
-  const unlockedIndex = userProgress[currentLang];
+  const lvls = langData[currentLang].levels;
+  const currentUnlocked = userState[currentLang];
 
-  document.getElementById('current-level-tag').innerText = `${levels[unlockedIndex]}`;
+  document.getElementById('current-lvl-badge').innerText = lvls[currentUnlocked];
 
-  levels.forEach((lvl, idx) => {
+  lvls.forEach((lvl, idx) => {
     const btn = document.createElement('button');
-    if (idx < unlockedIndex) {
-      btn.className = 'node-btn completed'; btn.innerText = '✓';
-    } else if (idx === unlockedIndex) {
-      btn.className = 'node-btn unlocked'; btn.innerText = '⭐';
+    if (idx < currentUnlocked) {
+      btn.className = 'node-circle done'; btn.innerText = '✓';
+    } else if (idx === currentUnlocked) {
+      btn.className = 'node-circle current'; btn.innerText = '⭐';
     } else {
-      btn.className = 'node-btn locked'; btn.innerText = '🔒';
+      btn.className = 'node-circle locked'; btn.innerText = '🔒';
     }
-    
+
     btn.onclick = () => {
-      if (idx <= unlockedIndex) {
-        alert(`當前為 [${lvl}] 級別。請點選上方「⏱️ 擬真檢定考」合格以解鎖下一級！`);
+      if(idx <= currentUnlocked) {
+        alert(`您正在學習 [${lvl}]。請進入「擬真檢定」測驗合格，以解鎖下一級！`);
       } else {
-        alert(`🔒 該級別已被鎖定！您必須先通過前一級別的正式擬真檢定考試。`);
+        alert(`🔒 該級別鎖定中！請先參加並通過前一級別的正式擬真檢定。`);
       }
     };
     container.appendChild(btn);
@@ -102,40 +102,42 @@ function renderLevelPath() {
 
 function startMatchGame() {
   const cards = vocabsData.find(c => c.lang_code === currentLang)?.cards || [];
-  if (cards.length < 4) return alert("單字庫載入中或資料不足！");
+  if (cards.length < 4) return alert("單字資料載入中...");
 
-  document.getElementById('match-game-area').classList.remove('hidden');
+  document.getElementById('game-board').classList.remove('hidden');
   const grid = document.getElementById('match-grid');
   grid.innerHTML = '';
 
-  const selectedCards = cards.slice(0, 4);
+  const pick = cards.slice(0, 4);
   let items = [];
-  selectedCards.forEach(c => {
-    items.push({ id: c.id, text: c.word, type: 'word' });
-    items.push({ id: c.id, text: c.translation, type: 'trans' });
+  pick.forEach(c => {
+    items.push({ id: c.id, text: c.word, type: 'w' });
+    items.push({ id: c.id, text: c.translation, type: 't' });
   });
   items.sort(() => Math.random() - 0.5);
 
-  let firstCard = null;
+  let first = null;
   items.forEach(item => {
     const div = document.createElement('div');
-    div.className = 'match-card';
+    div.className = 'm-card';
     div.innerText = item.text;
     div.onclick = () => {
       if (div.classList.contains('matched')) return;
-      if (!firstCard) {
-        firstCard = { item, element: div };
+      if (!first) {
+        first = { item, el: div };
         div.classList.add('selected');
       } else {
-        if (firstCard.element === div) return;
-        if (firstCard.item.id === item.id && firstCard.item.type !== item.type) {
-          firstCard.element.classList.add('matched');
+        if (first.el === div) return;
+        if (first.item.id === item.id && first.item.type !== item.type) {
+          first.el.classList.add('matched');
           div.classList.add('matched');
-          addXP(15);
+          userState.xp += 15;
+          saveState();
+          updateUI();
         } else {
-          firstCard.element.classList.remove('selected');
+          first.el.classList.remove('selected');
         }
-        firstCard = null;
+        first = null;
       }
     };
     grid.appendChild(div);
@@ -143,114 +145,110 @@ function startMatchGame() {
 }
 
 function updateExamIntro() {
-  const cfg = langConfigs[currentLang];
-  const curLvlName = cfg.levels[userProgress[currentLang]];
-  document.getElementById('exam-official-title').innerText = `${curLvlName} 官方擬真檢定考`;
-  document.getElementById('exam-rules-text').innerText = `⏱️ 時間：${Math.floor(cfg.examTime / 60)} 分鐘 | 合格門檻：${cfg.passScore} 分`;
+  const cfg = langData[currentLang];
+  const curLvlName = cfg.levels[userState[currentLang]];
+  document.getElementById('exam-title').innerText = `${curLvlName} 官方擬真測驗`;
+  document.getElementById('exam-desc').innerText = `⏱️ 時間：${Math.floor(cfg.time/60)} 分鐘 | 合格門檻：${cfg.pass} 分`;
 }
 
 function getQuestions() {
   return examsData.find(e => e.lang_code === currentLang)?.questions || [];
 }
 
-function startOfficialExam() {
-  const cfg = langConfigs[currentLang];
-  timeRemaining = cfg.examTime;
-  userExamAnswers = {};
-  currentQIndex = 0;
+function startExam() {
+  const cfg = langData[currentLang];
+  timeRemain = cfg.time;
+  userAnswers = {};
+  currentQIdx = 0;
 
-  document.getElementById('exam-intro-box').classList.add('hidden');
-  document.getElementById('exam-workspace').classList.remove('hidden');
+  document.getElementById('exam-start-card').classList.add('hidden');
+  document.getElementById('exam-active-box').classList.remove('hidden');
 
   clearInterval(examTimer);
   examTimer = setInterval(() => {
-    timeRemaining--;
-    const mins = Math.floor(timeRemaining / 60);
-    const secs = timeRemaining % 60;
-    document.getElementById('timer-display').innerText = `⏱️ ${mins}:${secs.toString().padStart(2, '0')}`;
-    if (timeRemaining <= 0) { clearInterval(examTimer); submitOfficialExam(); }
+    timeRemain--;
+    const m = Math.floor(timeRemain / 60);
+    const s = timeRemain % 60;
+    document.getElementById('clock-display').innerText = `⏱️ ${m}:${s.toString().padStart(2, '0')}`;
+    if (timeRemain <= 0) { clearInterval(examTimer); submitExam(); }
   }, 1000);
 
-  renderBubbleSheet();
-  renderExamQuestion();
+  renderSheet();
+  renderQuestion();
 }
 
-function renderBubbleSheet() {
-  const sheet = document.getElementById('bubble-sheet');
-  sheet.innerHTML = '';
+function renderSheet() {
+  const grid = document.getElementById('sheet-grid');
+  grid.innerHTML = '';
   getQuestions().forEach((q, idx) => {
-    const bubble = document.createElement('div');
-    bubble.className = `sheet-bubble ${userExamAnswers[idx] !== undefined ? 'filled' : ''}`;
-    bubble.innerText = idx + 1;
-    bubble.onclick = () => { currentQIndex = idx; renderExamQuestion(); };
-    sheet.appendChild(bubble);
+    const b = document.createElement('div');
+    b.className = `s-bubble ${userAnswers[idx] !== undefined ? 'filled' : ''}`;
+    b.innerText = idx + 1;
+    b.onclick = () => { currentQIdx = idx; renderQuestion(); };
+    grid.appendChild(b);
   });
 }
 
-function renderExamQuestion() {
+function renderQuestion() {
   const qList = getQuestions();
-  if (!qList.length) return;
-  const q = qList[currentQIndex];
-  document.getElementById('question-number-badge').innerText = `第 ${currentQIndex + 1} 題 / 共 ${qList.length} 題`;
-  document.getElementById('exam-q-text').innerText = q.question;
+  if(!qList.length) return;
+  const q = qList[currentQIdx];
 
-  const optsBox = document.getElementById('exam-options-group');
-  optsBox.innerHTML = '';
+  document.getElementById('q-num-tag').innerText = `第 ${currentQIdx + 1} 題 / 共 ${qList.length} 題`;
+  document.getElementById('q-text').innerText = q.question;
+
+  const container = document.getElementById('opt-container');
+  container.innerHTML = '';
+
   q.options.forEach((opt, idx) => {
     const btn = document.createElement('button');
-    btn.className = `opt-btn ${userExamAnswers[currentQIndex] === idx ? 'selected' : ''}`;
+    btn.className = `opt-btn ${userAnswers[currentQIdx] === idx ? 'selected' : ''}`;
     btn.innerText = opt;
     btn.onclick = () => {
-      userExamAnswers[currentQIndex] = idx;
-      renderBubbleSheet();
-      renderExamQuestion();
+      userAnswers[currentQIdx] = idx;
+      renderSheet();
+      renderQuestion();
     };
-    optsBox.appendChild(btn);
+    container.appendChild(btn);
   });
 }
 
-function submitOfficialExam() {
+function submitExam() {
   clearInterval(examTimer);
   const qList = getQuestions();
   let correct = 0;
-  qList.forEach((q, idx) => { if (userExamAnswers[idx] === q.answer) correct++; });
+  qList.forEach((q, idx) => { if (userAnswers[idx] === q.answer) correct++; });
 
   const score = Math.round((correct / (qList.length || 1)) * 100);
-  const passScore = langConfigs[currentLang].passScore;
+  const passScore = langData[currentLang].pass;
 
-  document.getElementById('exam-workspace').classList.add('hidden');
-  document.getElementById('exam-report-card').classList.remove('hidden');
-  document.getElementById('final-score-text').innerText = `${score} 分`;
+  document.getElementById('exam-active-box').classList.add('hidden');
+  document.getElementById('exam-result-card').classList.remove('hidden');
+  document.getElementById('res-score').innerText = `${score} 分`;
 
   if (score >= passScore) {
-    document.getElementById('report-icon').innerText = '🎓';
-    document.getElementById('report-title').innerText = '合格！正式晉級！';
-    document.getElementById('report-desc-text').innerText = `恭喜獲得 ${score} 分！已成功解鎖下一個高級別！`;
-    if (userProgress[currentLang] < langConfigs[currentLang].levels.length - 1) {
-      userProgress[currentLang]++;
-      saveProgress();
-      renderLevelPath();
+    document.getElementById('res-icon').innerText = '🎓';
+    document.getElementById('res-title').innerText = '合格！成功晉級！';
+    document.getElementById('res-msg').innerText = `恭喜獲得 ${score} 分，已成功解鎖下一個高級別！`;
+    if (userState[currentLang] < langData[currentLang].levels.length - 1) {
+      userState[currentLang]++;
+      saveState();
+      renderPath();
     }
   } else {
-    document.getElementById('report-icon').innerText = '💪';
-    document.getElementById('report-title').innerText = '未達合格門檻';
-    document.getElementById('report-desc-text').innerText = `獲得 ${score} 分 (合格線為 ${passScore} 分)。別氣餒，再試一次！`;
+    document.getElementById('res-icon').innerText = '💪';
+    document.getElementById('res-title').innerText = '未達合格門檻';
+    document.getElementById('res-msg').innerText = `得分 ${score} 分 (門檻 ${passScore} 分)，再複習一下吧！`;
   }
 }
 
-function addXP(amount) {
-  userProgress.xp += amount;
-  saveProgress();
-  updateUserStatsUI();
+function updateUI() {
+  document.getElementById('xp-val').innerText = userState.xp;
+  document.getElementById('p-fill').style.width = `${Math.min(100, userState.xp / 10)}%`;
 }
 
-function updateUserStatsUI() {
-  document.getElementById('user-xp').innerText = userProgress.xp;
-  document.getElementById('xp-progress').style.width = `${Math.min(100, userProgress.xp / 10)}%`;
-}
-
-function saveProgress() {
-  localStorage.setItem('lang_user_progress', JSON.stringify(userProgress));
+function saveState() {
+  localStorage.setItem('user_lang_state_v2', JSON.stringify(userState));
 }
 
 window.onload = init;
