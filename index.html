@@ -9,7 +9,6 @@
 </head>
 <body>
   <div class="app-container">
-    <!-- 頂部可愛 Header -->
     <header class="cute-header">
       <div class="logo-area">
         <span class="mascot">🐱</span>
@@ -25,7 +24,6 @@
       </select>
     </header>
 
-    <!-- 狀態與經驗條 -->
     <div class="status-card">
       <div class="status-info">
         <span id="current-level-tag" class="level-badge">JLPT N5 (已解鎖)</span>
@@ -34,21 +32,16 @@
       <div class="progress-bar-bg"><div id="xp-progress" class="progress-bar-fill" style="width: 0%;"></div></div>
     </div>
 
-    <!-- 導覽頁籤 -->
     <nav class="cute-tabs">
-      <button id="tab-path" class="tab-btn active">🗺️ 關卡地圖</button>
+      <button id="tab-path" class="tab-btn active">🗺️ 闖關地圖</button>
       <button id="tab-game" class="tab-btn">🎮 趣味小遊戲</button>
       <button id="tab-exam" class="tab-btn">⏱️ 擬真檢定考</button>
     </nav>
 
-    <!-- 1. 闖關地圖頁面 -->
     <main id="path-section" class="section">
-      <div class="path-container" id="level-path-nodes">
-        <!-- 動態繪製關卡节点 -->
-      </div>
+      <div class="path-container" id="level-path-nodes"></div>
     </main>
 
-    <!-- 2. 小遊戲頁面 -->
     <main id="game-section" class="section hidden">
       <div class="game-selector">
         <button class="game-card-btn" id="btn-game-match">
@@ -58,7 +51,6 @@
         </button>
       </div>
 
-      <!-- 連連看遊戲畫布 -->
       <div id="match-game-area" class="quiz-box hidden">
         <h3>🧩 單字連連看 (點擊配對)</h3>
         <div class="match-grid" id="match-grid"></div>
@@ -66,7 +58,6 @@
       </div>
     </main>
 
-    <!-- 3. 擬真檢定頁面 -->
     <main id="exam-section" class="section hidden">
       <div class="exam-card" id="exam-intro-box">
         <div class="exam-stamp">OFFICIAL</div>
@@ -78,14 +69,12 @@
         <button id="btn-start-official-exam" class="cute-btn primary">🚀 開始正式檢定考試</button>
       </div>
 
-      <!-- 考試作答工作區 -->
       <div class="exam-workspace hidden" id="exam-workspace">
         <div class="timer-bar">
           <span id="exam-level-indicator">JLPT N5 測驗中</span>
           <span class="timer-clock" id="timer-display">⏱️ 40:00</span>
         </div>
 
-        <!-- 劃卡快速跳頁面板 -->
         <div class="bubble-sheet" id="bubble-sheet"></div>
 
         <div class="quiz-card">
@@ -101,7 +90,6 @@
         </div>
       </div>
 
-      <!-- 成績單 -->
       <div class="report-card hidden" id="exam-report-card">
         <div id="report-icon" class="report-icon">🎉</div>
         <h2 id="report-title">合格證明書</h2>
