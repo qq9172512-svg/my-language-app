@@ -1,0 +1,102 @@
+{
+  "exams": [
+    {
+      "lang_code": "ja",
+      "exam_name": "JLPT (日本語能力試驗)",
+      "level": "N5",
+      "questions": [
+        {
+          "id": "jlpt_n5_q1",
+          "type": "vocabulary",
+          "question": "「本」的正確讀音是什麼？",
+          "options": ["ほん", "はん", "ぼん", "ぽん"],
+          "answer": 0,
+          "explanation": "「本」在日文中讀作「ほん (hon)」，意思是書本。"
+        },
+        {
+          "id": "jlpt_n5_q2",
+          "type": "grammar",
+          "question": "わたし____ 學生です。",
+          "options": ["が", "は", "を", "に"],
+          "answer": 1,
+          "explanation": "提示主題時，句中需使用助詞「は」。"
+        }
+      ]
+    },
+    {
+      "lang_code": "ko",
+      "exam_name": "TOPIK (韓國語能力考試)",
+      "level": "TOPIK I (初級)",
+      "questions": [
+        {
+          "id": "topik_1_q1",
+          "type": "vocabulary",
+          "question": "請選出「학교」的中文意思：",
+          "options": ["公司", "公園", "學校", "醫院"],
+          "answer": 2,
+          "explanation": "「학교 (hak-gyo)」對應的漢字詞為「學校」。"
+        }
+      ]
+    },
+    {
+      "lang_code": "en",
+      "exam_name": "TOEIC / CEFR",
+      "level": "A2 (初中級)",
+      "questions": [
+        {
+          "id": "toeic_q1",
+          "type": "grammar",
+          "question": "She ____ to school by bus every morning.",
+          "options": ["go", "goes", "going", "gone"],
+          "answer": 1,
+          "explanation": "主詞為第三人稱單數 She，且為習慣性動作（every morning），動詞需加上 -es 變成 goes。"
+        }
+      ]
+    },
+    {
+      "lang_code": "fr",
+      "exam_name": "DELF",
+      "level": "DELF A1",
+      "questions": [
+        {
+          "id": "delf_a1_q1",
+          "type": "grammar",
+          "question": "Comment ____ -vous ?",
+          "options": ["allez", "va", "vas", "allons"],
+          "answer": 0,
+          "explanation": "配合人稱代詞 vous（您/你們），動詞 aller 需變位為 allez。"
+        }
+      ]
+    },
+    {
+      "lang_code": "de",
+      "exam_name": "Goethe-Zertifikat",
+      "level": "Goethe A1",
+      "questions": [
+        {
+          "id": "goethe_a1_q1",
+          "type": "vocabulary",
+          "question": "「Guten Tag」是什麼意思？",
+          "options": ["晚安", "你好 / 日安", "再見", "對不起"],
+          "answer": 1,
+          "explanation": "Guten Tag 是德語中白天最常見的問候語，相當於「你好」或「日安」。"
+        }
+      ]
+    },
+    {
+      "lang_code": "es",
+      "exam_name": "DELE",
+      "level": "DELE A1",
+      "questions": [
+        {
+          "id": "dele_a1_q1",
+          "type": "grammar",
+          "question": "Yo ____ estudiante de español.",
+          "options": ["soy", "eres", "es", "somos"],
+          "answer": 0,
+          "explanation": "搭配第一人稱單數 Yo（我），動詞 ser 需變位為 soy。"
+        }
+      ]
+    }
+  ]
+}
