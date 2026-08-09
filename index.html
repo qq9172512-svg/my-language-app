@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>多國語言闖關與擬真檢定</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="manifest" href="manifest.json">
+  <title>語研大冒險 - 多國語言檢定</title>
+  <link rel="stylesheet" href="style.css?v=2.0">
 </head>
 <body>
   <div class="app-container">
+    <!-- 可愛可愛 Header -->
     <header class="cute-header">
-      <div class="logo-area">
-        <span class="mascot">🐱</span>
-        <h1>語研大冒險</h1>
+      <div class="logo">
+        <span class="avatar">🐱</span>
+        <h2>語研大冒險</h2>
       </div>
       <select id="lang-select">
         <option value="ja">日語 (JLPT)</option>
@@ -24,82 +24,95 @@
       </select>
     </header>
 
-    <div class="status-card">
-      <div class="status-info">
-        <span id="current-level-tag" class="level-badge">JLPT N5 (已解鎖)</span>
-        <span>✨ 經驗值: <strong id="user-xp">0</strong> XP</span>
+    <!-- 玩家數據卡 -->
+    <div class="user-card">
+      <div class="user-row">
+        <span id="current-lvl-badge" class="badge">JLPT N5 (當前目標)</span>
+        <span class="xp-text">✨ <strong id="xp-val">0</strong> XP</span>
       </div>
-      <div class="progress-bar-bg"><div id="xp-progress" class="progress-bar-fill" style="width: 0%;"></div></div>
+      <div class="p-bar"><div id="p-fill" class="p-fill" style="width: 10%;"></div></div>
     </div>
 
-    <nav class="cute-tabs">
+    <!-- 主選單頁籤 -->
+    <nav class="nav-tabs">
       <button id="tab-path" class="tab-btn active">🗺️ 闖關地圖</button>
-      <button id="tab-game" class="tab-btn">🎮 趣味小遊戲</button>
-      <button id="tab-exam" class="tab-btn">⏱️ 擬真檢定考</button>
+      <button id="tab-game" class="tab-btn">🎮 互動遊戲</button>
+      <button id="tab-exam" class="tab-btn">⏱️ 擬真檢定</button>
     </nav>
 
-    <main id="path-section" class="section">
-      <div class="path-container" id="level-path-nodes"></div>
-    </main>
+    <!-- 1. 闖關地圖 -->
+    <section id="path-sec" class="sec-box">
+      <div class="map-path" id="map-nodes">
+        <!-- 動態產生關卡按鈕 -->
+      </div>
+    </section>
 
-    <main id="game-section" class="section hidden">
-      <div class="game-selector">
-        <button class="game-card-btn" id="btn-game-match">
-          <span class="game-icon">🧩</span>
-          <div class="game-title">單字連連看</div>
-          <p>訓練瞬間單字反射神經</p>
+    <!-- 2. 多元遊戲區 -->
+    <section id="game-sec" class="sec-box hidden">
+      <div class="game-menu">
+        <button class="g-card" id="btn-play-match">
+          <span class="g-icon">🧩</span>
+          <h3>單字連連看</h3>
+          <p>配對日/韓/英單字與中文，提升反射神經！</p>
         </button>
       </div>
 
-      <div id="match-game-area" class="quiz-box hidden">
-        <h3>🧩 單字連連看 (點擊配對)</h3>
+      <!-- 連連看畫布 -->
+      <div id="game-board" class="game-board hidden">
+        <div class="gb-header">
+          <h3>🧩 點擊卡片進行連線配對</h3>
+          <button id="btn-close-game" class="c-btn sm">結束</button>
+        </div>
         <div class="match-grid" id="match-grid"></div>
-        <button id="btn-close-match" class="cute-btn secondary">結束遊戲</button>
       </div>
-    </main>
+    </section>
 
-    <main id="exam-section" class="section hidden">
-      <div class="exam-card" id="exam-intro-box">
-        <div class="exam-stamp">OFFICIAL</div>
-        <h2 id="exam-official-title">JLPT N5 官方規格模擬考</h2>
-        <p id="exam-rules-text">⏱️ 考試時間：40 分鐘 | 題數：35 題 | 合格標準：80 分</p>
-        <div class="exam-notice">
-          📍 本測驗 100% 比照真實檢定題型與時間限制，獲得合格即可解鎖下一級別！
+    <!-- 3. 擬真檢定區 -->
+    <section id="exam-sec" class="sec-box hidden">
+      <div id="exam-start-card" class="exam-card">
+        <div class="stamp">OFFICIAL</div>
+        <h2 id="exam-title">JLPT N5 官方模擬測驗</h2>
+        <p id="exam-desc">⏱️ 限時：40 分鐘 | 合格標準：80 分</p>
+        <div class="exam-tip">
+          💡 必須通過本級別檢定測驗，才能解鎖下一階段學習內容！
         </div>
-        <button id="btn-start-official-exam" class="cute-btn primary">🚀 開始正式檢定考試</button>
-      </div>
-
-      <div class="exam-workspace hidden" id="exam-workspace">
-        <div class="timer-bar">
-          <span id="exam-level-indicator">JLPT N5 測驗中</span>
-          <span class="timer-clock" id="timer-display">⏱️ 40:00</span>
-        </div>
-
-        <div class="bubble-sheet" id="bubble-sheet"></div>
-
-        <div class="quiz-card">
-          <span id="question-number-badge" class="q-badge">第 1 題</span>
-          <h3 id="exam-q-text">載入題目中...</h3>
-          <div id="exam-options-group" class="options-group"></div>
-        </div>
-
-        <div class="exam-actions">
-          <button id="btn-prev-q" class="cute-btn secondary">上一題</button>
-          <button id="btn-next-q" class="cute-btn secondary">下一題</button>
-          <button id="btn-submit-exam" class="cute-btn danger">📥 提早交卷</button>
-        </div>
+        <button id="btn-start-exam" class="c-btn primary lg">🚀 開始正式檢定考試</button>
       </div>
 
-      <div class="report-card hidden" id="exam-report-card">
-        <div id="report-icon" class="report-icon">🎉</div>
-        <h2 id="report-title">合格證明書</h2>
-        <div class="final-score" id="final-score-text">0 分</div>
-        <p id="report-desc-text">恭喜通過！已為您解鎖下一個高級別！</p>
-        <button id="btn-finish-report" class="cute-btn primary">返回地圖</button>
+      <!-- 考試作答區 -->
+      <div id="exam-active-box" class="exam-card hidden">
+        <div class="exam-timer-bar">
+          <span id="exam-lvl-title">JLPT N5 測驗中</span>
+          <span id="clock-display" class="clock">⏱️ 40:00</span>
+        </div>
+
+        <!-- 劃卡卡號面板 -->
+        <div class="sheet-grid" id="sheet-grid"></div>
+
+        <div class="q-box">
+          <span id="q-num-tag" class="q-tag">第 1 題</span>
+          <h3 id="q-text">題目載入中...</h3>
+          <div id="opt-container" class="opt-list"></div>
+        </div>
+
+        <div class="exam-ctrls">
+          <button id="btn-prev-q" class="c-btn sec">上一題</button>
+          <button id="btn-next-q" class="c-btn sec">下一題</button>
+          <button id="btn-submit-exam" class="c-btn danger">📥 交卷</button>
+        </div>
       </div>
-    </main>
+
+      <!-- 成績卡 -->
+      <div id="exam-result-card" class="exam-card hidden">
+        <div id="res-icon" class="res-icon">🎉</div>
+        <h2 id="res-title">成績單</h2>
+        <div id="res-score" class="res-score">0 分</div>
+        <p id="res-msg"></p>
+        <button id="btn-back-map" class="c-btn primary lg">返回闖關地圖</button>
+      </div>
+    </section>
   </div>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=2.0"></script>
 </body>
 </html>
