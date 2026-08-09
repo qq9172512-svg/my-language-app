@@ -1,5 +1,5 @@
 // 🔑 Supabase 連線資訊設定
-const SUPABASE_URL = "https://uKtJ0qD18Q7MkDzf3co0Bg.supabase.co"; // 根據 publishable key 解析之專案域名
+const SUPABASE_URL = "https://uKtJ0qD18Q7MkDzf3co0Bg.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_uKtJ0qD18Q7MkDzf3co0Bg_wfoinpqh";
 
 // 初始化 Supabase Client
@@ -12,7 +12,7 @@ let userProfile = { xp: 0, streak_days: 1 };
 let currentCards = [];
 let cardIndex = 0;
 
-// 備用單字庫 (當 Supabase 資料庫尚未建立或離線時使用)
+// 備用單字庫 (離線或免登入時使用)
 const fallbackVocabs = {
   ja: [
     { id: 'ja-1', word: '食べる', reading: 'たべる (taberu)', meaning: '吃 (動詞)', category: '飲食', example_sentence: 'ラーメンを食べます。', example_translation: '我要吃拉麵。' },
@@ -30,18 +30,22 @@ const fallbackVocabs = {
   ]
 };
 
-// 1. App 進入點
+// 1. App 初始化
 async function init() {
   bindEvents();
 
+  // 預設設為自由模式
+  document.getElementById('user-name').innerText = "自由冒險家";
+  document.getElementById('sync-indicator').innerText = "👤 本地模式";
+
   if (supabase) {
-    // 檢查目前登入狀態
+    // 自動靜默檢查是否有先前的登入 Session（不會彈窗）
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.user) {
       await onUserLogin(session.user);
     }
 
-    // 監聽 Auth 變化
+    // 監聽 Auth 狀態轉變
     supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
         await onUserLogin(session.user);
@@ -49,17 +53,14 @@ async function init() {
         onUserLogout();
       }
     });
-  } else {
-    console.warn("Supabase SDK 未能正常載入，將啟用離線模式。");
-    document.getElementById('sync-indicator').innerText = "🌐 離線模式";
   }
 
   await loadLanguageData();
 }
 
-// 2. DOM 事件綁定
+// 2. 事件綁定
 function bindEvents() {
-  // 頁籤 Tab 切換
+  // 底部 Tab 切換
   document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.onclick = () => {
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -71,51 +72,57 @@ function bindEvents() {
     };
   });
 
-  // 語言選單切換
+  // 切換語言
   document.getElementById('lang-select').onchange = async (e) => {
     currentLang = e.target.value;
     await loadLanguageData();
   };
 
-  // 登入 / 註冊按鈕
+  // ⚙️ 右上角登入/帳號按鈕（主動點擊才跳出彈窗或執行登出）
+  document.getElementById('btn-logout').onclick = () => {
+    if (currentUser) {
+      if (confirm("確定要登出 Supabase 帳號嗎？")) {
+        if (supabase) supabase.auth.signOut();
+      }
+    } else {
+      // 未登入狀態時，點擊按鈕跳出登入視窗
+      document.getElementById('auth-modal').classList.remove('hidden');
+    }
+  };
+
+  // 彈窗內的按鈕事件
   document.getElementById('btn-login').onclick = handleLogin;
   
-  // 訪客體驗按鈕
-  document.getElementById('btn-guest-login').onclick = () => {
-    document.getElementById('auth-modal').classList.add('hidden');
-    document.getElementById('user-name').innerText = "訪客冒險家";
-    document.getElementById('sync-indicator').innerText = "👤 訪客模式";
-  };
+  const closeBtn = document.getElementById('btn-close-modal') || document.getElementById('btn-guest-login');
+  if (closeBtn) {
+    closeBtn.onclick = () => {
+      document.getElementById('auth-modal').classList.add('hidden');
+    };
+  }
 
-  // 登出按鈕
-  document.getElementById('btn-logout').onclick = async () => {
-    if (supabase) await supabase.auth.signOut();
-    onUserLogout();
-  };
-
-  // 點擊卡片翻面 (避開聽語音按鈕)
+  // 點擊單字卡翻面
   document.getElementById('active-card').onclick = (e) => {
     if (e.target.id === 'btn-audio') return;
     document.getElementById('active-card').classList.toggle('flipped');
   };
 
-  // 聽語音 TTS 發音
+  // 聽語音 TTS
   document.getElementById('btn-audio').onclick = (e) => {
     e.stopPropagation();
     playSpeech();
   };
 
-  // 連連看小遊戲
+  // 小遊戲
   document.getElementById('btn-start-game').onclick = startMatchGame;
 }
 
-// 3. Supabase 驗證處理
+// 3. Supabase 登入處理
 async function handleLogin() {
   const email = document.getElementById('auth-email').value.trim();
   const pwd = document.getElementById('auth-pwd').value.trim();
 
   if (!email || !pwd) {
-    alert("請完整輸入 Email 與密碼");
+    alert("請輸入 Email 與密碼");
     return;
   }
 
@@ -124,17 +131,19 @@ async function handleLogin() {
     return;
   }
 
-  // 嘗試登入
   const { data, error } = await supabase.auth.signInWithPassword({ email, password: pwd });
 
   if (error) {
-    // 登入失敗則自動嘗試註冊
+    // 登入失敗嘗試自動註冊
     const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({ email, password: pwd });
     if (signUpErr) {
       alert("登入/註冊失敗: " + signUpErr.message);
     } else {
-      alert("帳號註冊成功！已自動為您登入。");
+      alert("帳號建立成功！已為您自動同步登入。");
+      document.getElementById('auth-modal').classList.add('hidden');
     }
+  } else {
+    document.getElementById('auth-modal').classList.add('hidden');
   }
 }
 
@@ -145,14 +154,14 @@ async function onUserLogin(user) {
   document.getElementById('prof-email').innerText = user.email;
   document.getElementById('sync-indicator').innerText = "☁️ 雲端同步中";
 
-  // 取得/建立用戶Profile
+  // 讀取/建立雲端 Profile
   let { data: profile } = await supabase.from('user_profiles').select('*').eq('id', user.id).single();
   
   if (!profile) {
     const newProf = { 
       id: user.id, 
       display_name: user.email.split('@')[0], 
-      xp: 0, 
+      xp: userProfile.xp || 0, 
       streak_days: 1 
     };
     await supabase.from('user_profiles').insert([newProf]);
@@ -166,25 +175,21 @@ async function onUserLogin(user) {
 function onUserLogout() {
   currentUser = null;
   userProfile = { xp: 0, streak_days: 1 };
-  document.getElementById('auth-modal').classList.remove('hidden');
-  document.getElementById('user-name').innerText = "未登入";
-  document.getElementById('prof-email').innerText = "-";
-  document.getElementById('sync-indicator').innerText = "⚡ 未同步";
+  document.getElementById('user-name').innerText = "自由冒險家";
+  document.getElementById('prof-email').innerText = "未登入";
+  document.getElementById('sync-indicator').innerText = "👤 本地模式";
   updateUI();
 }
 
-// 4. 載入單字資料 (優先讀取 Supabase，失敗時切換至 Local 備份)
+// 4. 載入單字資料
 async function loadLanguageData() {
   let vocabs = [];
 
-  if (supabase) {
+  if (currentUser && supabase) {
     const { data, error } = await supabase.from('words_corpus').select('*').eq('lang', currentLang);
-    if (!error && data && data.length > 0) {
-      vocabs = data;
-    }
+    if (!error && data && data.length > 0) vocabs = data;
   }
 
-  // 若資料庫尚未充值單字，載入豐富備用庫
   if (vocabs.length === 0) {
     vocabs = fallbackVocabs[currentLang] || fallbackVocabs['ja'];
   }
@@ -195,7 +200,7 @@ async function loadLanguageData() {
   renderMapNodes();
 }
 
-// 5. 渲染雙向單字卡與 TTS 語音
+// 5. 卡片與 SRS 系統
 function renderFlashcard() {
   if (!currentCards.length) return;
   const item = currentCards[cardIndex];
@@ -217,23 +222,22 @@ function playSpeech() {
   const utter = new SpeechSynthesisUtterance(item.word);
   const langMap = { ja: 'ja-JP', ko: 'ko-KR', en: 'en-US', fr: 'fr-FR', de: 'de-DE', es: 'es-ES' };
   utter.lang = langMap[currentLang] || 'en-US';
-  utter.rate = 0.85; // 稍微放慢語速，方便初學者聆聽
+  utter.rate = 0.85;
   window.speechSynthesis.speak(utter);
 }
 
-// SRS 間隔記憶評分 (1: 難, 3: 尚可, 5: 簡單)
 async function handleSrsRating(rating) {
   const item = currentCards[cardIndex];
   const gainedXp = rating * 5;
 
   userProfile.xp += gainedXp;
 
+  // 若已登入，寫入 Supabase 雲端
   if (currentUser && supabase) {
     const nextDays = rating === 1 ? 1 : rating === 3 ? 3 : 7;
     const nextReview = new Date();
     nextReview.setDate(nextReview.getDate() + nextDays);
 
-    // 更新個人 SRS 紀錄
     await supabase.from('user_word_srs').upsert({
       user_id: currentUser.id,
       word_id: item.id,
@@ -241,24 +245,20 @@ async function handleSrsRating(rating) {
       next_review_at: nextReview.toISOString()
     });
 
-    // 更新用戶經驗值
     await supabase.from('user_profiles').update({ xp: userProfile.xp }).eq('id', currentUser.id);
   }
 
   updateUI();
-  
-  // 切換至下一個單字
   cardIndex = (cardIndex + 1) % currentCards.length;
   renderFlashcard();
 }
 
-// 6. 互動連連看小遊戲
+// 6. 連連看小遊戲
 function startMatchGame() {
   const board = document.getElementById('game-board');
   board.classList.remove('hidden');
   board.innerHTML = '';
 
-  // 隨機取出 4 個單字製作 8 張配對卡片
   const pick = [...currentCards].sort(() => Math.random() - 0.5).slice(0, 4);
   let items = [];
 
@@ -267,7 +267,6 @@ function startMatchGame() {
     items.push({ id: c.id, text: c.meaning, type: 'meaning' });
   });
 
-  // 洗牌
   items.sort(() => Math.random() - 0.5);
 
   let selected = null;
@@ -284,9 +283,8 @@ function startMatchGame() {
         selected = { item, el: card };
         card.classList.add('selected');
       } else {
-        if (selected.el === card) return; // 點擊同張卡片無效
+        if (selected.el === card) return;
 
-        // 判斷是否 ID 相同且類型不同（原文配中文）
         if (selected.item.id === item.id && selected.item.type !== item.type) {
           selected.el.classList.add('matched');
           card.classList.add('matched');
@@ -302,7 +300,7 @@ function startMatchGame() {
   });
 }
 
-// 7. 地圖關卡節點
+// 7. 地圖節點
 function renderMapNodes() {
   const container = document.getElementById('map-nodes-container');
   if (!container) return;
@@ -314,12 +312,12 @@ function renderMapNodes() {
     const btn = document.createElement('button');
     btn.className = `node-btn ${idx === 0 ? 'current' : ''}`;
     btn.innerText = idx === 0 ? '⭐' : '🔒';
-    btn.onclick = () => alert(`關卡【${stage}】\n完成單字卡 SRS 複習與連連看可賺取 XP，累積進度即可解鎖下一關！`);
+    btn.onclick = () => alert(`關卡【${stage}】\n不用登入即可學習！點擊單字卡複習或玩連連看，賺取 XP 即可解鎖關卡！`);
     container.appendChild(btn);
   });
 }
 
-// 8. 介面數據更新
+// 8. UI 更新
 function updateUI() {
   document.getElementById('xp-val').innerText = userProfile.xp;
   document.getElementById('streak-val').innerText = userProfile.streak_days;
@@ -327,5 +325,4 @@ function updateUI() {
   document.getElementById('prof-streak').innerText = `${userProfile.streak_days} 天`;
 }
 
-// 初始化啟動
 window.onload = init;
