@@ -1,21 +1,21 @@
 {
-  "name": "語言大冒險",
-  "short_name": "語言大冒險",
-  "description": "全功能跨語言學習與 SRS 間隔記憶 App",
+  "name": "語研大冒險 - 6-Language Global Edition",
+  "short_name": "語研大冒險",
+  "description": "結合 6 國語言學習、SRS 智慧記憶卡與互動挑戰的全功能 App",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#0F172A",
-  "theme_color": "#10B981",
+  "background_color": "#1a202c",
+  "theme_color": "#ff7675",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3898/3898082.png",
+      "src": "./icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3898/3898082.png",
+      "src": "./icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
