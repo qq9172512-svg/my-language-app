@@ -1,0 +1,247 @@
+{
+  "en_toeic": {
+    "name": "🇺🇸 英文 (TOEIC 300+)",
+    "exams": [
+      {
+        "id": "toeic_300",
+        "title": "TOEIC 300分入門模擬卷 (基礎文法與單字)",
+        "desc": "專為多益 300 分起步者設計，測試基礎句型與日常工作單字",
+        "duration": 600,
+        "questions": [
+          {
+            "type": "reading",
+            "title": "Part 5: 基礎代名詞與動詞填空",
+            "passage": "Ms. Green will visit our office tomorrow. Please give _______ the latest report.",
+            "options": ["(A) she", "(B) her", "(C) hers", "(D) herself"],
+            "answer": 1,
+            "coachTip": "💡 教練解析：動詞 give 後面需要接受格 her。",
+            "explanation": "give 為授與動詞，其後接受格代名詞 her 作受詞。"
+          }
+        ]
+      }
+    ],
+    "library": [
+      {
+        "id": "lib_en_300_1",
+        "date": "2026-08-09",
+        "category": "daily",
+        "title": "☕ A Simple Morning Routine at Work",
+        "level": "TOEIC 300+ 基礎",
+        "rawText": "Every morning, John arrives at the office at nine o clock. He checks his email and drinks a cup of coffee before the team meeting.",
+        "translation": "每天早上，約翰在九點到達辦公室。他在團隊會議前檢查電子郵件並喝了一杯咖啡。",
+        "vocabNotes": [
+          { "word": "arrives", "meaning": "到達" },
+          { "word": "checks", "meaning": "檢查" }
+        ]
+      }
+    ],
+    "vocabs": [
+      { "word": "Schedule", "phonetic": "/ˈskedʒuːl/", "pos": "名詞 (n.)", "meaning": "行程表、時間表", "level": "TOEIC 300+", "exEn": "Please check your schedule.", "exZh": "請檢查您的行程表。" }
+    ]
+  },
+
+  "ja_jlpt": {
+    "name": "🇯🇵 日文 (JLPT N5)",
+    "exams": [
+      {
+        "id": "jlpt_n5",
+        "title": "JLPT N5 入門基礎模擬測驗",
+        "desc": "測試基礎助詞與初階動詞變化",
+        "duration": 600,
+        "questions": [
+          {
+            "type": "reading",
+            "title": "問題：助詞の選択",
+            passage: "私は毎日、図書館_______勉強します。",
+            options: ["1. で", "2. に", "3. を", "4. は"],
+            answer: 0,
+            coachTip: "💡 教練解析：在某個場所進行動作，使用助詞「で」。",
+            explanation: "表示進行動作的場所時，使用「で」。"
+          }
+        ]
+      }
+    ],
+    "library": [
+      {
+        "id": "lib_ja_n5_1",
+        "date": "2026-08-09",
+        "category": "daily",
+        "title": "🌸 私の新しい日本語の生活",
+        "level": "JLPT N5 入門",
+        "rawText": "私は毎日朝七時に起きます。そして、パンを食べます。日本語の勉強はとても楽しいです。",
+        translation: "我每天早上七點起床。然後，吃麵包。日語學習非常有趣。",
+        vocabNotes": [
+          { "word": "起きます", "meaning": "起床" },
+          { "word": "楽しい", "meaning": "快樂的、有趣的" }
+        ]
+      }
+    ],
+    "vocabs": [
+      { "word": "食べる", "phonetic": "たべる", "pos": "動詞 (一段)", "meaning": "吃", "level": "JLPT N5", "exEn": "りんごを食べます。", "exZh": "吃蘋果。" }
+    ]
+  },
+
+  "ko_topik": {
+    "name": "🇰🇷 韓文 (TOPIK I)",
+    "exams": [
+      {
+        "id": "topik_i",
+        "title": "TOPIK I (初級) 基礎文法與閱讀模擬",
+        desc: "測試基礎句尾與日常對話",
+        duration: 600,
+        questions: [
+          {
+            type: "reading",
+            title: "빈칸 채우기",
+            passage: "저는 오늘 친구를 _______. ",
+            options: ["1. 만나요", "2. 맛있다", "3. 가방", "4. 예쁘다"],
+            answer: 0,
+            coachTip: "💡 教練解析：친구(朋友)通常搭配 만나요(見面)。",
+            explanation: "句子語意為「我今天和朋友見面」，故選 만나요。"
+          }
+        ]
+      }
+    ],
+    "library": [
+      {
+        "id": "lib_ko_i_1",
+        "date": "2026-08-09",
+        "category": "daily",
+        "title": "🇰🇷 나의 하루 일과",
+        "level": "TOPIK I 初級",
+        "rawText": "아침에 일어나서 커피를 마셔요. 그리고 회사에 갑니다. 일하는 것은 재미있어요.",
+        translation: "早上起床後喝咖啡。然後去公司。工作很有趣。",
+        vocabNotes": [
+          { "word": "마셔요", "meaning": "喝" },
+          { "word": "갑니다", "meaning": "去" }
+        ]
+      }
+    ],
+    "vocabs": [
+      { "word": "사과", phonetic: "/sa-gwa/", pos: "名詞 (n.)", meaning: "蘋果", level: "TOPIK I", exEn: "사과를 먹어요.", exZh: "吃蘋果。" }
+    ]
+  },
+
+  "fr_delf": {
+    "name": "🇫🇷 法文 (DELF A1)",
+    "exams": [
+      {
+        "id": "delf_a1",
+        "title": "DELF A1 Découverte et Grammaire",
+        desc: "法語檢定 A1 初級基礎與自我介紹",
+        duration: 600,
+        questions: [
+          {
+            type: "reading",
+            title: "Conjugaison basique",
+            passage: "Bonjour ! Je _______ Marie et j’habite à Paris.",
+            options: ["(A) suis", "(B) s’appelle", "(C) es", "(D) ont"],
+            answer: 0,
+            coachTip: "💡 教練解析：第一人稱主詞 Je 搭配être動詞變位為 suis。",
+            explanation: "Je 的être動詞正確變位為 suis (Je suis)。"
+          }
+        ]
+      }
+    ],
+    "library": [
+      {
+        "id": "lib_fr_a1_1",
+        "date": "2026-08-09",
+        "category": "daily",
+        "title": "🥐 Ma première journée à Paris",
+        "level": "DELF A1 入門",
+        rawText: "Le matin, je prends un croissant et un café dans un petit café. J’aime beaucoup la ville.",
+        translation: "早上，我在一間小咖啡館吃可頌配咖啡。我非常喜歡這座城市。",
+        vocabNotes": [
+          { "word": "matin", "meaning": "早晨" },
+          { "word": "ville", "meaning": "城市" }
+        ]
+      }
+    ],
+    "vocabs": [
+      { "word": "Bonjour", phonetic: "/bɔ̃.ʒuʁ/", pos: "感嘆詞", meaning: "早安、你好", level: "DELF A1", "exEn": "Bonjour, comment ça va ?", "exZh": "你好，最近怎麼樣？" }
+    ]
+  },
+
+  "de_goethe": {
+    "name": "🇩🇪 德文 (Goethe A1)",
+    "exams": [
+      {
+        "id": "goethe_a1",
+        "title": "Goethe-Zertifikat A1 Start Deutsch",
+        desc: "德語檢定 A1 基礎文法與對話測驗",
+        duration: 600,
+        questions: [
+          {
+            type: "reading",
+            title: "Verben im Präsens",
+            passage: "Ich _______ Anna und komme aus Berlin.",
+            options: ["(A) bin", "(B) bist", "(C) ist", "(D) sind"],
+            answer: 0,
+            coachTip: "💡 教練解析：主詞 Ich 對應的 sein 動詞是 bin。",
+            explanation: "Ich (我) 的動詞sein變化為 bin。"
+          }
+        ]
+      }
+    ],
+    "library": [
+      {
+        "id": "lib_de_a1_1",
+        "date": "2026-08-09",
+        "category": "daily",
+        "title": "☕ Mein Morgen in München",
+        "level": "Goethe A1 入門",
+        rawText: "Am Morgen trinke ich gerne Tee. Die Sonne scheint und das Wetter ist sehr schön.",
+        translation: "早上我喜歡喝茶。陽光普照，天氣非常好。",
+        vocabNotes": [
+          { "word": "trinke", "meaning": "喝" },
+          { "word": "Wetter", "meaning": "天氣" }
+        ]
+      }
+    ],
+    "vocabs": [
+      { "word": "Guten Tag", phonetic: "/ˈɡuːtn̩ ˈtaːk/", pos: "片語", meaning: "您好", level: "Goethe A1", "exEn": "Guten Tag, Herr Müller.", "exZh": "您好，穆勒先生。" }
+    ]
+  },
+
+  "es_dele": {
+    "name": "🇪🇸 西班牙文 (DELE A1)",
+    "exams": [
+      {
+        "id": "dele_a1",
+        "title": "DELE A1 Acceso y Vocabulario Básico",
+        desc: "西班牙語檢定 A1 初學者基礎測驗",
+        duration: 600,
+        questions: [
+          {
+            type: "reading",
+            title: "Verbos regulares",
+            passage: "Yo _______ español todos los días.",
+            options: ["(A) estudio", "(B) estudias", "(C) estudia", "(D) estudiamos"],
+            answer: 0,
+            coachTip: "💡 教練解析：第一人稱 Yo 的動詞字尾通常結尾於 -o (estudio)。",
+            explanation: "Yo 對應動詞 regular -ar 結尾變位為 estudio。"
+          }
+        ]
+      }
+    ],
+    "library": [
+      {
+        "id": "lib_es_a1_1",
+        "date": "2026-08-09",
+        "category": "daily",
+        "title": "☀️ Mi rutina diaria en Madrid",
+        "level": "DELE A1 入門",
+        rawText: "Por la mañana, desayuno pan con aceite de oliva. Me gusta mucho pasear por el parque.",
+        translation: "早上，我吃配橄欖油的麵包當早餐。我非常喜歡在公園散步。",
+        vocabNotes": [
+          { "word": "mañana", "meaning": "早晨、明天" },
+          { "word": "parque", "meaning": "公園" }
+        ]
+      }
+    ],
+    "vocabs": [
+      { "word": "Amigo", phonetic: "/aˈmi.ɣo/", pos: "名詞 (n.)", meaning: "朋友", level: "DELE A1", "exEn": "Él es mi amigo.", "exZh": "他是我的朋友。" }
+    ]
+  }
+}
