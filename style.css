@@ -72,3 +72,20 @@ select { padding: 6px 10px; border-radius: 10px; border: 2px solid #DDD; backgro
 .exam-ctrls { display: flex; justify-content: space-between; }
 .res-icon { font-size: 50px; }
 .res-score { font-size: 44px; font-weight: bold; color: #28A745; margin: 10px 0; }
+/* 進度備份與狀態列 */
+.sync-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 11px; color: #666; border-top: 1px dashed #EEE; padding-top: 8px; }
+.mini-btn { background: #E2E8F0; border: none; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; }
+.mini-btn:hover { background: #CBD5E1; }
+
+/* 學習歷程清單 */
+.record-card { background: #FFF; padding: 18px; border-radius: var(--radius); box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+.history-list { list-style: none; margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
+.log-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-radius: 10px; border-left: 5px solid #CCC; background: #F8F9FA; }
+.log-item.pass { border-left-color: #28A745; background: #E8F5E9; }
+.log-item.fail { border-left-color: #DC3545; background: #FFEBEE; }
+.log-info { display: flex; flex-direction: column; text-align: left; }
+.log-date { font-size: 11px; color: #888; margin-top: 2px; }
+.log-score { font-weight: bold; font-size: 14px; }
+.text-pass { color: #28A745; }
+.text-fail { color: #DC3545; }
+.empty-msg { text-align: center; color: #999; padding: 20px 0; font-size: 13px; }
