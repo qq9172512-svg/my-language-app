@@ -1,0 +1,102 @@
+{
+  "categories": [
+    {
+      "lang_code": "ja",
+      "language": "日文 (Japanese)",
+      "level": "基礎 (50音 / N5)",
+      "cards": [
+        {
+          "id": "ja_01",
+          "word": "本",
+          "phonetic": "ほん (hon)",
+          "translation": "書本",
+          "example": "これは本です。(這是書本。)"
+        },
+        {
+          "id": "ja_02",
+          "word": "水",
+          "phonetic": "みず (mizu)",
+          "translation": "水",
+          "example": "水をつめてください。(請給我水。)"
+        }
+      ]
+    },
+    {
+      "lang_code": "ko",
+      "language": "韓文 (Korean)",
+      "level": "基礎 (諺文 / 初級)",
+      "cards": [
+        {
+          "id": "ko_01",
+          "word": "물",
+          "phonetic": "mul",
+          "translation": "水",
+          "example": "물 주세요. (請給我水。)"
+        },
+        {
+          "id": "ko_02",
+          "word": "학교",
+          "phonetic": "hak-gyo",
+          "translation": "學校",
+          "example": "학교에 갑니다. (去學校。)"
+        }
+      ]
+    },
+    {
+      "lang_code": "en",
+      "language": "英文 (English)",
+      "level": "基礎 (A1 / 初級)",
+      "cards": [
+        {
+          "id": "en_01",
+          "word": "Apple",
+          "phonetic": "/ˈæp.əl/",
+          "translation": "蘋果",
+          "example": "I eat an apple every day."
+        }
+      ]
+    },
+    {
+      "lang_code": "fr",
+      "language": "法文 (French)",
+      "level": "基礎 (A1)",
+      "cards": [
+        {
+          "id": "fr_01",
+          "word": "Bonjour",
+          "phonetic": "/bɔ̃ʒuʁ/",
+          "translation": "你好 / 早安",
+          "example": "Bonjour, comment allez-vous?"
+        }
+      ]
+    },
+    {
+      "lang_code": "de",
+      "language": "德文 (German)",
+      "level": "基礎 (A1)",
+      "cards": [
+        {
+          "id": "de_01",
+          "word": "Danke",
+          "phonetic": "/ˈdaŋkə/",
+          "translation": "謝謝",
+          "example": "Vielen Dank! (非常感謝！)"
+        }
+      ]
+    },
+    {
+      "lang_code": "es",
+      "language": "西班牙文 (Spanish)",
+      "level": "基礎 (A1)",
+      "cards": [
+        {
+          "id": "es_01",
+          "word": "Hola",
+          "phonetic": "/ˈola/",
+          "translation": "你好",
+          "example": "¡Hola! ¿Cómo estás?"
+        }
+      ]
+    }
+  ]
+}
