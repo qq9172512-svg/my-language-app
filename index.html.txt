@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#121826">
+  <title>語研大冒險 - 全功能 App</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+  <!-- Supabase JS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <!-- 🔒 登入/註冊 Modal 視窗 -->
+  <div id="auth-modal" class="auth-overlay">
+    <div class="auth-card">
+      <div class="auth-header">
+        <span class="app-logo">🐱</span>
+        <h2>語研大冒險</h2>
+        <p>登入帳號以啟用 Supabase 雲端進度與 SRS 記憶系統</p>
+      </div>
+      <div class="auth-body">
+        <input type="email" id="auth-email" placeholder="請輸入 Email" />
+        <input type="password" id="auth-pwd" placeholder="請輸入密碼" />
+        <button id="btn-login" class="btn primary">登入 / 註冊帳號</button>
+        <div class="divider"><span>或</span></div>
+        <button id="btn-guest-login" class="btn secondary">🚀 免登入，直接試用體驗</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📱 App 視口容器 -->
+  <div class="app-viewport">
+    
+    <!-- 頂部資訊欄 -->
+    <header class="app-header">
+      <div class="user-info">
+        <span class="user-avatar">🐱</span>
+        <div class="user-details">
+          <span id="user-name" class="user-name">載入中...</span>
+          <div class="user-badges">
+            <span class="badge streak">🔥 <span id="streak-val">1</span> 天</span>
+            <span class="badge xp">✨ <span id="xp-val">0</span> XP</span>
+          </div>
+        </div>
+      </div>
+      <button id="btn-logout" class="icon-btn" title="帳號選單">⚙️</button>
+    </header>
+
+    <!-- 語言選單卡片 -->
+    <div class="lang-bar">
+      <select id="lang-select">
+        <option value="ja">🇯🇵 日語 (JLPT)</option>
+        <option value="ko">🇰🇷 韓語 (TOPIK)</option>
+        <option value="en">🇺🇸 英語 (TOEIC)</option>
+        <option value="fr">🇫🇷 法語 (DELF)</option>
+        <option value="de">🇩🇪 德語 (Goethe)</option>
+        <option value="es">🇪🇸 西語 (DELE)</option>
+      </select>
+      <span id="sync-indicator" class="sync-status">☁️ 已連線</span>
+    </div>
+
+    <!-- 主體內容區 -->
+    <main class="app-main">
+      
+      <!-- [Tab 1] 闖關地圖與分級進度 -->
+      <section id="tab-path" class="tab-page active">
+        <div class="stage-banner">
+          <h3 id="current-stage-title">JLPT N5 基礎目標</h3>
+          <p>完成 SRS 卡片學習與練習，解鎖模擬測驗！</p>
+        </div>
+        <div id="map-nodes-container" class="nodes-path"></div>
+      </section>
+
+      <!-- [Tab 2] SRS 扎實單字卡 (語音發音 + 雙面翻卡 + 例句) -->
+      <section id="tab-cards" class="tab-page hidden">
+        <div class="srs-header">
+          <h3>📚 扎實單字卡 (SRS 記憶系統)</h3>
+          <span class="srs-count">待複習: <strong id="srs-pending-count">0</strong></span>
+        </div>
+
+        <div id="flashcard-box" class="flashcard-container">
+          <div class="flashcard" id="active-card">
+            <div class="card-face card-front">
+              <span class="word-cat" id="card-cat">日常基礎</span>
+              <h1 class="word-text" id="card-word">食べる</h1>
+              <p class="word-reading" id="card-reading">たべる (taberu)</p>
+              <button id="btn-audio" class="audio-btn">🔊 聽發音</button>
+              <span class="flip-hint">💡 點擊卡片查看中文翻譯與例句</span>
+            </div>
+            <div class="card-face card-back">
+              <h2 class="word-meaning" id="card-meaning">吃 (動詞)</h2>
+              <div class="example-box">
+                <p class="example-src" id="card-ex-src">ラーメンを食べます。</p>
+                <p class="example-tgt" id="card-ex-tgt">我要吃拉麵。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SRS 記憶度按鈕 -->
+        <div class="srs-controls">
+          <button class="srs-btn hard" onclick="handleSrsRating(1)">🔴 很難 (明天複習)</button>
+          <button class="srs-btn good" onclick="handleSrsRating(3)">🟡 尚可 (3天後)</button>
+          <button class="srs-btn easy" onclick="handleSrsRating(5)">🟢 簡單 (7天後)</button>
+        </div>
+      </section>
+
+      <!-- [Tab 3] 互動連連看遊戲 -->
+      <section id="tab-game" class="tab-page hidden">
+        <div class="card-box">
+          <h3>🧩 單字連連看</h3>
+          <p>配對原文單字與中文釋義，快速建立反射神經！</p>
+          <button id="btn-start-game" class="btn primary mt-10">開始全新局</button>
+        </div>
+        <div id="game-board" class="match-grid-container mt-15 hidden"></div>
+      </section>
+
+      <!-- [Tab 4] 擬真檢定 -->
+      <section id="tab-exam" class="tab-page hidden">
+        <div id="exam-intro-card" class="card-box text-center">
+          <div class="stamp">OFFICIAL</div>
+          <h2 id="exam-title">官方模擬測驗</h2>
+          <p id="exam-desc">⏱️ 限時 40 分鐘 | 通過標準 80 分</p>
+          <button id="btn-start-exam" class="btn primary lg mt-15">🚀 開始正式模擬測驗</button>
+        </div>
+
+        <div id="exam-active-card" class="card-box hidden">
+          <div class="exam-header-bar">
+            <span id="exam-progress">第 1 / 5 題</span>
+            <span id="exam-timer" class="timer">⏱️ 40:00</span>
+          </div>
+          <h3 id="exam-q-text" class="mt-10">載入中...</h3>
+          <div id="exam-opts-container" class="options-stack mt-10"></div>
+          <button id="btn-submit-exam" class="btn danger lg mt-15">📥 提早交卷</button>
+        </div>
+      </section>
+
+      <!-- [Tab 5] 學習歷程與統計 -->
+      <section id="tab-profile" class="tab-page hidden">
+        <div class="card-box">
+          <h3>📊 個人雲端學習檔案</h3>
+          <p class="mt-5">帳號：<span id="prof-email" class="highlight">-</span></p>
+          <p class="mt-5">連勝紀錄：<span id="prof-streak" class="highlight">1 天</span></p>
+          <p class="mt-5">累積 XP：<span id="prof-xp" class="highlight">0 XP</span></p>
+        </div>
+        <div class="card-box mt-10">
+          <h3>📜 測驗與挑戰歷史紀錄</h3>
+          <ul id="exam-history-list" class="history-list">
+            <li class="empty-msg">尚無考試紀錄</li>
+          </ul>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- 📱 底部原生導航欄 (Bottom Navigation Bar) -->
+    <nav class="app-nav">
+      <button class="nav-btn active" data-tab="path">
+        <span class="nav-icon">🗺️</span>
+        <span class="nav-label">闖關</span>
+      </button>
+      <button class="nav-btn" data-tab="cards">
+        <span class="nav-icon">📚</span>
+        <span class="nav-label">單字卡</span>
+      </button>
+      <button class="nav-btn" data-tab="game">
+        <span class="nav-icon">🎮</span>
+        <span class="nav-label">遊戲</span>
+      </button>
+      <button class="nav-btn" data-tab="exam">
+        <span class="nav-icon">⏱️</span>
+        <span class="nav-label">檢定</span>
+      </button>
+      <button class="nav-btn" data-tab="profile">
+        <span class="nav-icon">👤</span>
+        <span class="nav-label">歷程</span>
+      </button>
+    </nav>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
