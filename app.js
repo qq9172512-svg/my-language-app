@@ -5,7 +5,7 @@ let userProfile = { xp: 0, streak_days: 1 };
 let currentCards = [];
 let cardIndex = 0;
 
-// 完整內建單字庫 (隨開即用，完全不需要依賴後端即可體驗)
+// 完整內建多國單字庫 (日、韓、英、法、德、西)
 const vocabsDatabase = {
   ja: [
     { id: 'j1', word: 'こんにちは', reading: 'Konnichiwa', meaning: '你好', category: '問候', example_sentence: '皆さん、こんにちは！', example_translation: '大家你好！' },
@@ -24,6 +24,24 @@ const vocabsDatabase = {
     { id: 'e1', word: 'Awesome', reading: '/ˈɔː.səm/', meaning: '超棒的', category: '讚美', example_sentence: 'You did an awesome job!', example_translation: '你做得太棒了！' },
     { id: 'e2', word: 'Delicious', reading: '/dɪˈlɪʃ.əs/', meaning: '美味的', category: '飲食', example_sentence: 'This cake is delicious.', example_translation: '這個蛋糕真美味。' },
     { id: 'e3', word: 'Adventure', reading: '/ədˈven.tʃər/', meaning: '冒險', category: '日常', example_sentence: 'Welcome to the language adventure!', example_translation: '歡迎來到語言大冒險！' }
+  ],
+  fr: [
+    { id: 'f1', word: 'Bonjour', reading: 'bõʒuʁ', meaning: '你好；早安', category: '問候', example_sentence: 'Bonjour, comment allez-vous ?', example_translation: '你好，你好嗎？' },
+    { id: 'f2', word: 'Merci', reading: 'mɛʁsi', meaning: '謝謝', category: '禮貌', example_sentence: 'Merci beaucoup !', example_translation: '非常感謝！' },
+    { id: 'f3', word: 'Café', reading: 'kafe', meaning: '咖啡', category: '飲食', example_sentence: 'Un café, s\'il vous plaît.', example_translation: '請給我一杯咖啡。' },
+    { id: 'f4', word: 'Amour', reading: 'amuʁ', meaning: '愛；愛情', category: '情感', example_sentence: 'L\'amour est magnifique.', example_translation: '愛情是美好的。' }
+  ],
+  de: [
+    { id: 'd1', word: 'Guten Tag', reading: 'ɡuːtn̩ taːk', meaning: '你好；日安', category: '問候', example_sentence: 'Guten Tag! Wie geht es Ihnen?', example_translation: '你好！您最近好嗎？' },
+    { id: 'd2', word: 'Danke', reading: 'daŋkə', meaning: '謝謝', category: '禮貌', example_sentence: 'Vielen Dank für Ihre Hilfe.', example_translation: '非常感謝您的幫助。' },
+    { id: 'd3', word: 'Kaffee', reading: 'kafe', meaning: '咖啡', category: '飲食', example_sentence: 'Ich möchte einen Kaffee bitte.', example_translation: '我想要一杯咖啡，謝謝。' },
+    { id: 'd4', word: 'Wunderbar', reading: 'vʊndɐbaːɐ̯', meaning: '極好的；美妙的', category: '讚美', example_sentence: 'Das Wetter ist wunderbar.', example_translation: '天氣太棒了。' }
+  ],
+  es: [
+    { id: 's1', word: '¡Hola!', reading: 'o.la', meaning: '你好！', category: '問候', example_sentence: '¡Hola! ¿Cómo estás?', example_translation: '你好！你好嗎？' },
+    { id: 's2', word: 'Gracias', reading: 'gɾa.sjas', meaning: '謝謝', category: '禮貌', example_sentence: 'Muchas gracias por todo.', example_translation: '非常感謝你做的一切。' },
+    { id: 's3', word: 'Amigo', reading: 'a.mi.ɣo', meaning: '朋友', category: '社交', example_sentence: 'Él es mi mejor amigo.', example_translation: '他是我最好的朋友。' },
+    { id: 's4', word: 'Fiesta', reading: 'fjes.ta', meaning: '派對；節慶', category: '娛樂', example_sentence: '¡Vamos a la fiesta!', example_translation: '我們去參加派對吧！' }
   ]
 };
 
@@ -108,7 +126,7 @@ function renderFlashcard() {
   document.getElementById('srs-pending-count').innerText = currentCards.length - cardIndex;
 }
 
-// 5. 語音朗讀 TTS
+// 5. 語音朗讀 TTS (支援日、韓、英、法、德、西)
 function playSpeech() {
   const item = currentCards[cardIndex];
   if (!item || !('speechSynthesis' in window)) {
@@ -116,9 +134,16 @@ function playSpeech() {
     return;
   }
 
-  window.speechSynthesis.cancel(); // 停止先前的聲音
+  window.speechSynthesis.cancel();
   const utter = new SpeechSynthesisUtterance(item.word);
-  const langCodes = { ja: 'ja-JP', ko: 'ko-KR', en: 'en-US' };
+  const langCodes = { 
+    ja: 'ja-JP', 
+    ko: 'ko-KR', 
+    en: 'en-US',
+    fr: 'fr-FR',
+    de: 'de-DE',
+    es: 'es-ES'
+  };
   utter.lang = langCodes[currentLang] || 'en-US';
   utter.rate = 0.8;
   window.speechSynthesis.speak(utter);
@@ -129,7 +154,6 @@ function handleSrsRating(score) {
   userProfile.xp += score * 5;
   updateUI();
 
-  // 下一張卡片
   cardIndex = (cardIndex + 1) % currentCards.length;
   renderFlashcard();
 }
