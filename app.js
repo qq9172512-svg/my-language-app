@@ -1,334 +1,331 @@
-const langData = {
-  ja: { levels: ["JLPT N5", "JLPT N4", "JLPT N3", "JLPT N2", "JLPT N1"], pass: 80, time: 2400 },
-  ko: { levels: ["TOPIK I (1級)", "TOPIK I (2級)", "TOPIK II"], pass: 80, time: 3600 },
-  en: { levels: ["TOEIC 入門(300+)", "TOEIC 中級(500+)", "TOEIC 高階(700+)"], pass: 70, time: 2700 },
-  fr: { levels: ["DELF A1", "DELF A2", "DELF B1"], pass: 60, time: 1800 },
-  de: { levels: ["Goethe A1", "Goethe A2", "Goethe B1"], pass: 60, time: 1800 },
-  es: { levels: ["DELE A1", "DELE A2", "DELE B1"], pass: 60, time: 2700 }
-};
+// 🔑 Supabase 連線資訊設定
+const SUPABASE_URL = "https://uKtJ0qD18Q7MkDzf3co0Bg.supabase.co"; // 根據 publishable key 解析之專案域名
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_uKtJ0qD18Q7MkDzf3co0Bg_wfoinpqh";
 
-// 永久學習紀錄結構
-let userState = JSON.parse(localStorage.getItem('user_lang_learning_data_v3')) || {
-  progress: { ja: 0, ko: 0, en: 0, fr: 0, de: 0, es: 0 },
-  xp: 0,
-  historyLogs: [] // 記錄每一次的考試與練習紀錄
-};
+// 初始化 Supabase Client
+const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY) : null;
 
+// 全域狀態管理
+let currentUser = null;
 let currentLang = 'ja';
-let vocabsData = [];
-let examsData = [];
-let examTimer = null;
-let timeRemain = 0;
-let userAnswers = {};
-let currentQIdx = 0;
+let userProfile = { xp: 0, streak_days: 1 };
+let currentCards = [];
+let cardIndex = 0;
 
+// 備用單字庫 (當 Supabase 資料庫尚未建立或離線時使用)
+const fallbackVocabs = {
+  ja: [
+    { id: 'ja-1', word: '食べる', reading: 'たべる (taberu)', meaning: '吃 (動詞)', category: '飲食', example_sentence: 'ラーメンを食べます。', example_translation: '我要吃拉麵。' },
+    { id: 'ja-2', word: '飲む', reading: 'のむ (nomu)', meaning: '喝 (動詞)', category: '飲食', example_sentence: '水をおねがいします。', example_translation: '請給我水。' },
+    { id: 'ja-3', word: '行く', reading: 'いく (iku)', meaning: '去 (動詞)', category: '交通', example_sentence: '東京へ行きます。', example_translation: '我要去東京。' },
+    { id: 'ja-4', word: '話す', reading: 'はなす (hanasu)', meaning: '說話 (動詞)', category: '交流', example_sentence: '日本語で話します。', example_translation: '用日語交談。' }
+  ],
+  ko: [
+    { id: 'ko-1', word: '먹다', reading: 'meok-da', meaning: '吃 (動詞)', category: '日常', example_sentence: '밥을 먹어요.', example_translation: '我在吃飯。' },
+    { id: 'ko-2', word: '마시다', reading: 'ma-si-da', meaning: '喝 (動詞)', category: '日常', example_sentence: '커피를 마셔요.', example_translation: '我在喝咖啡。' }
+  ],
+  en: [
+    { id: 'en-1', word: 'Resilient', reading: '/rɪˈzɪl.jənt/', meaning: '有彈性的；堅韌的', category: 'TOEIC高頻', example_sentence: 'She is a resilient leader.', example_translation: '她是一位堅忍不拔的領導者。' },
+    { id: 'en-2', word: 'Innovate', reading: '/ˈɪn.ə.veɪt/', meaning: '創新 (動詞)', category: '職場商務', example_sentence: 'We need to innovate constantly.', example_translation: '我們需要不斷創新。' }
+  ]
+};
+
+// 1. App 進入點
 async function init() {
-  try {
-    const vRes = await fetch('data/basic_vocabs.json');
-    vocabsData = (await vRes.json()).categories;
-    const eRes = await fetch('data/exam_questions.json');
-    examsData = (await eRes.json()).exams;
+  bindEvents();
 
-    bindEvents();
-    renderPath();
-    updateUI();
-    renderHistoryLogs();
-  } catch(e) { console.error("Data load err:", e); }
-}
-
-function bindEvents() {
-  document.getElementById('lang-select').onchange = (e) => {
-    currentLang = e.target.value;
-    renderPath();
-    updateExamIntro();
-  };
-
-  document.getElementById('tab-path').onclick = () => showTab('path');
-  document.getElementById('tab-game').onclick = () => showTab('game');
-  document.getElementById('tab-exam').onclick = () => { showTab('exam'); updateExamIntro(); };
-  document.getElementById('tab-record').onclick = () => { showTab('record'); renderHistoryLogs(); };
-
-  document.getElementById('btn-play-match').onclick = startMatchGame;
-  document.getElementById('btn-close-game').onclick = () => {
-    document.getElementById('game-board').classList.add('hidden');
-  };
-
-  document.getElementById('btn-start-exam').onclick = startExam;
-  document.getElementById('btn-submit-exam').onclick = submitExam;
-  document.getElementById('btn-back-map').onclick = () => {
-    document.getElementById('exam-result-card').classList.add('hidden');
-    document.getElementById('exam-start-card').classList.remove('hidden');
-    showTab('path');
-  };
-
-  document.getElementById('btn-prev-q').onclick = () => { if(currentQIdx > 0) { currentQIdx--; renderQuestion(); } };
-  document.getElementById('btn-next-q').onclick = () => {
-    const qList = getQuestions();
-    if(currentQIdx < qList.length - 1) { currentQIdx++; renderQuestion(); }
-  };
-
-  // 進度備份與還原事件
-  document.getElementById('btn-export-data').onclick = exportProgress;
-  document.getElementById('btn-import-data').onclick = () => document.getElementById('file-input').click();
-  document.getElementById('file-input').onchange = importProgress;
-}
-
-function showTab(name) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.sec-box').forEach(s => s.classList.add('hidden'));
-
-  document.getElementById(`tab-${name}`).classList.add('active');
-  document.getElementById(`${name}-sec`).classList.remove('hidden');
-}
-
-function renderPath() {
-  const container = document.getElementById('map-nodes');
-  container.innerHTML = '';
-  const lvls = langData[currentLang].levels;
-  const currentUnlocked = userState.progress[currentLang] || 0;
-
-  document.getElementById('current-lvl-badge').innerText = lvls[currentUnlocked];
-
-  lvls.forEach((lvl, idx) => {
-    const btn = document.createElement('button');
-    if (idx < currentUnlocked) {
-      btn.className = 'node-circle done'; btn.innerText = '✓';
-    } else if (idx === currentUnlocked) {
-      btn.className = 'node-circle current'; btn.innerText = '⭐';
-    } else {
-      btn.className = 'node-circle locked'; btn.innerText = '🔒';
+  if (supabase) {
+    // 檢查目前登入狀態
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+      await onUserLogin(session.user);
     }
 
-    btn.onclick = () => {
-      if(idx <= currentUnlocked) {
-        alert(`您當前進行至 [${lvl}]。請進入「擬真檢定」測驗合格以晉級！`);
+    // 監聽 Auth 變化
+    supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user) {
+        await onUserLogin(session.user);
       } else {
-        alert(`🔒 該級別鎖定中！請先參加並通過前一級別的正式擬真檢定。`);
+        onUserLogout();
       }
-    };
-    container.appendChild(btn);
-  });
-}
-
-function startMatchGame() {
-  const cards = vocabsData.find(c => c.lang_code === currentLang)?.cards || [];
-  if (cards.length < 4) return alert("單字資料載入中...");
-
-  document.getElementById('game-board').classList.remove('hidden');
-  const grid = document.getElementById('match-grid');
-  grid.innerHTML = '';
-
-  const pick = cards.slice(0, 4);
-  let items = [];
-  pick.forEach(c => {
-    items.push({ id: c.id, text: c.word, type: 'w' });
-    items.push({ id: c.id, text: c.translation, type: 't' });
-  });
-  items.sort(() => Math.random() - 0.5);
-
-  let first = null;
-  items.forEach(item => {
-    const div = document.createElement('div');
-    div.className = 'm-card';
-    div.innerText = item.text;
-    div.onclick = () => {
-      if (div.classList.contains('matched')) return;
-      if (!first) {
-        first = { item, el: div };
-        div.classList.add('selected');
-      } else {
-        if (first.el === div) return;
-        if (first.item.id === item.id && first.item.type !== item.type) {
-          first.el.classList.add('matched');
-          div.classList.add('matched');
-          userState.xp += 15;
-          saveState();
-          updateUI();
-        } else {
-          first.el.classList.remove('selected');
-        }
-        first = null;
-      }
-    };
-    grid.appendChild(div);
-  });
-}
-
-function updateExamIntro() {
-  const cfg = langData[currentLang];
-  const curLvlName = cfg.levels[userState.progress[currentLang] || 0];
-  document.getElementById('exam-title').innerText = `${curLvlName} 官方擬真測驗`;
-  document.getElementById('exam-desc').innerText = `⏱️ 時間：${Math.floor(cfg.time/60)} 分鐘 | 合格門檻：${cfg.pass} 分`;
-}
-
-function getQuestions() {
-  return examsData.find(e => e.lang_code === currentLang)?.questions || [];
-}
-
-function startExam() {
-  const cfg = langData[currentLang];
-  timeRemain = cfg.time;
-  userAnswers = {};
-  currentQIdx = 0;
-
-  document.getElementById('exam-start-card').classList.add('hidden');
-  document.getElementById('exam-active-box').classList.remove('hidden');
-
-  clearInterval(examTimer);
-  examTimer = setInterval(() => {
-    timeRemain--;
-    const m = Math.floor(timeRemain / 60);
-    const s = timeRemain % 60;
-    document.getElementById('clock-display').innerText = `⏱️ ${m}:${s.toString().padStart(2, '0')}`;
-    if (timeRemain <= 0) { clearInterval(examTimer); submitExam(); }
-  }, 1000);
-
-  renderSheet();
-  renderQuestion();
-}
-
-function renderSheet() {
-  const grid = document.getElementById('sheet-grid');
-  grid.innerHTML = '';
-  getQuestions().forEach((q, idx) => {
-    const b = document.createElement('div');
-    b.className = `s-bubble ${userAnswers[idx] !== undefined ? 'filled' : ''}`;
-    b.innerText = idx + 1;
-    b.onclick = () => { currentQIdx = idx; renderQuestion(); };
-    grid.appendChild(b);
-  });
-}
-
-function renderQuestion() {
-  const qList = getQuestions();
-  if(!qList.length) return;
-  const q = qList[currentQIdx];
-
-  document.getElementById('q-num-tag').innerText = `第 ${currentQIdx + 1} 題 / 共 ${qList.length} 題`;
-  document.getElementById('q-text').innerText = q.question;
-
-  const container = document.getElementById('opt-container');
-  container.innerHTML = '';
-
-  q.options.forEach((opt, idx) => {
-    const btn = document.createElement('button');
-    btn.className = `opt-btn ${userAnswers[currentQIdx] === idx ? 'selected' : ''}`;
-    btn.innerText = opt;
-    btn.onclick = () => {
-      userAnswers[currentQIdx] = idx;
-      renderSheet();
-      renderQuestion();
-    };
-    container.appendChild(btn);
-  });
-}
-
-function submitExam() {
-  clearInterval(examTimer);
-  const qList = getQuestions();
-  let correct = 0;
-  qList.forEach((q, idx) => { if (userAnswers[idx] === q.answer) correct++; });
-
-  const score = Math.round((correct / (qList.length || 1)) * 100);
-  const passScore = langData[currentLang].pass;
-  const curLvlName = langData[currentLang].levels[userState.progress[currentLang] || 0];
-
-  document.getElementById('exam-active-box').classList.add('hidden');
-  document.getElementById('exam-result-card').classList.remove('hidden');
-  document.getElementById('res-score').innerText = `${score} 分`;
-
-  const isPassed = score >= passScore;
-
-  // 寫入學習歷程 Log
-  const logEntry = {
-    date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-    lang: currentLang.toUpperCase(),
-    level: curLvlName,
-    score: score,
-    passed: isPassed
-  };
-  userState.historyLogs.unshift(logEntry);
-
-  if (isPassed) {
-    document.getElementById('res-icon').innerText = '🎓';
-    document.getElementById('res-title').innerText = '合格！成功晉級！';
-    document.getElementById('res-msg').innerText = `恭喜獲得 ${score} 分，已解鎖下一階段學習！`;
-    if ((userState.progress[currentLang] || 0) < langData[currentLang].levels.length - 1) {
-      userState.progress[currentLang]++;
-    }
+    });
   } else {
-    document.getElementById('res-icon').innerText = '💪';
-    document.getElementById('res-title').innerText = '未達合格門檻';
-    document.getElementById('res-msg').innerText = `得分 ${score} 分 (合格標準 ${passScore} 分)，再試一次！`;
+    console.warn("Supabase SDK 未能正常載入，將啟用離線模式。");
+    document.getElementById('sync-indicator').innerText = "🌐 離線模式";
   }
 
-  saveState();
-  renderPath();
+  await loadLanguageData();
 }
 
-function renderHistoryLogs() {
-  const list = document.getElementById('history-log-list');
-  list.innerHTML = '';
+// 2. DOM 事件綁定
+function bindEvents() {
+  // 頁籤 Tab 切換
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-page').forEach(p => p.classList.add('hidden'));
 
-  if (!userState.historyLogs || userState.historyLogs.length === 0) {
-    list.innerHTML = '<li class="empty-msg">尚無考試紀錄，快去挑戰擬真檢定吧！</li>';
+      btn.classList.add('active');
+      const tabName = btn.getAttribute('data-tab');
+      document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+    };
+  });
+
+  // 語言選單切換
+  document.getElementById('lang-select').onchange = async (e) => {
+    currentLang = e.target.value;
+    await loadLanguageData();
+  };
+
+  // 登入 / 註冊按鈕
+  document.getElementById('btn-login').onclick = handleLogin;
+  
+  // 訪客體驗按鈕
+  document.getElementById('btn-guest-login').onclick = () => {
+    document.getElementById('auth-modal').classList.add('hidden');
+    document.getElementById('user-name').innerText = "訪客冒險家";
+    document.getElementById('sync-indicator').innerText = "👤 訪客模式";
+  };
+
+  // 登出按鈕
+  document.getElementById('btn-logout').onclick = async () => {
+    if (supabase) await supabase.auth.signOut();
+    onUserLogout();
+  };
+
+  // 點擊卡片翻面 (避開聽語音按鈕)
+  document.getElementById('active-card').onclick = (e) => {
+    if (e.target.id === 'btn-audio') return;
+    document.getElementById('active-card').classList.toggle('flipped');
+  };
+
+  // 聽語音 TTS 發音
+  document.getElementById('btn-audio').onclick = (e) => {
+    e.stopPropagation();
+    playSpeech();
+  };
+
+  // 連連看小遊戲
+  document.getElementById('btn-start-game').onclick = startMatchGame;
+}
+
+// 3. Supabase 驗證處理
+async function handleLogin() {
+  const email = document.getElementById('auth-email').value.trim();
+  const pwd = document.getElementById('auth-pwd').value.trim();
+
+  if (!email || !pwd) {
+    alert("請完整輸入 Email 與密碼");
     return;
   }
 
-  userState.historyLogs.forEach(log => {
-    const li = document.createElement('li');
-    li.className = `log-item ${log.passed ? 'pass' : 'fail'}`;
-    li.innerHTML = `
-      <div class="log-info">
-        <strong>[${log.lang}] ${log.level}</strong>
-        <span class="log-date">${log.date}</span>
-      </div>
-      <div class="log-score ${log.passed ? 'text-pass' : 'text-fail'}">
-        ${log.score} 分 (${log.passed ? '合格' : '不合格'})
-      </div>
-    `;
-    list.appendChild(li);
+  if (!supabase) {
+    alert("Supabase 連線尚未就緒");
+    return;
+  }
+
+  // 嘗試登入
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password: pwd });
+
+  if (error) {
+    // 登入失敗則自動嘗試註冊
+    const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({ email, password: pwd });
+    if (signUpErr) {
+      alert("登入/註冊失敗: " + signUpErr.message);
+    } else {
+      alert("帳號註冊成功！已自動為您登入。");
+    }
+  }
+}
+
+async function onUserLogin(user) {
+  currentUser = user;
+  document.getElementById('auth-modal').classList.add('hidden');
+  document.getElementById('user-name').innerText = user.email.split('@')[0];
+  document.getElementById('prof-email').innerText = user.email;
+  document.getElementById('sync-indicator').innerText = "☁️ 雲端同步中";
+
+  // 取得/建立用戶Profile
+  let { data: profile } = await supabase.from('user_profiles').select('*').eq('id', user.id).single();
+  
+  if (!profile) {
+    const newProf = { 
+      id: user.id, 
+      display_name: user.email.split('@')[0], 
+      xp: 0, 
+      streak_days: 1 
+    };
+    await supabase.from('user_profiles').insert([newProf]);
+    profile = newProf;
+  }
+
+  userProfile = profile;
+  updateUI();
+}
+
+function onUserLogout() {
+  currentUser = null;
+  userProfile = { xp: 0, streak_days: 1 };
+  document.getElementById('auth-modal').classList.remove('hidden');
+  document.getElementById('user-name').innerText = "未登入";
+  document.getElementById('prof-email').innerText = "-";
+  document.getElementById('sync-indicator').innerText = "⚡ 未同步";
+  updateUI();
+}
+
+// 4. 載入單字資料 (優先讀取 Supabase，失敗時切換至 Local 備份)
+async function loadLanguageData() {
+  let vocabs = [];
+
+  if (supabase) {
+    const { data, error } = await supabase.from('words_corpus').select('*').eq('lang', currentLang);
+    if (!error && data && data.length > 0) {
+      vocabs = data;
+    }
+  }
+
+  // 若資料庫尚未充值單字，載入豐富備用庫
+  if (vocabs.length === 0) {
+    vocabs = fallbackVocabs[currentLang] || fallbackVocabs['ja'];
+  }
+
+  currentCards = vocabs;
+  cardIndex = 0;
+  renderFlashcard();
+  renderMapNodes();
+}
+
+// 5. 渲染雙向單字卡與 TTS 語音
+function renderFlashcard() {
+  if (!currentCards.length) return;
+  const item = currentCards[cardIndex];
+
+  document.getElementById('active-card').classList.remove('flipped');
+  document.getElementById('card-cat').innerText = item.category || '日常基礎';
+  document.getElementById('card-word').innerText = item.word;
+  document.getElementById('card-reading').innerText = item.reading;
+  document.getElementById('card-meaning').innerText = item.meaning;
+  document.getElementById('card-ex-src').innerText = item.example_sentence || '暫無例句';
+  document.getElementById('card-ex-tgt').innerText = item.example_translation || '暫無翻譯';
+  document.getElementById('srs-pending-count').innerText = currentCards.length - cardIndex;
+}
+
+function playSpeech() {
+  const item = currentCards[cardIndex];
+  if (!item || !('speechSynthesis' in window)) return;
+
+  const utter = new SpeechSynthesisUtterance(item.word);
+  const langMap = { ja: 'ja-JP', ko: 'ko-KR', en: 'en-US', fr: 'fr-FR', de: 'de-DE', es: 'es-ES' };
+  utter.lang = langMap[currentLang] || 'en-US';
+  utter.rate = 0.85; // 稍微放慢語速，方便初學者聆聽
+  window.speechSynthesis.speak(utter);
+}
+
+// SRS 間隔記憶評分 (1: 難, 3: 尚可, 5: 簡單)
+async function handleSrsRating(rating) {
+  const item = currentCards[cardIndex];
+  const gainedXp = rating * 5;
+
+  userProfile.xp += gainedXp;
+
+  if (currentUser && supabase) {
+    const nextDays = rating === 1 ? 1 : rating === 3 ? 3 : 7;
+    const nextReview = new Date();
+    nextReview.setDate(nextReview.getDate() + nextDays);
+
+    // 更新個人 SRS 紀錄
+    await supabase.from('user_word_srs').upsert({
+      user_id: currentUser.id,
+      word_id: item.id,
+      proficiency: rating,
+      next_review_at: nextReview.toISOString()
+    });
+
+    // 更新用戶經驗值
+    await supabase.from('user_profiles').update({ xp: userProfile.xp }).eq('id', currentUser.id);
+  }
+
+  updateUI();
+  
+  // 切換至下一個單字
+  cardIndex = (cardIndex + 1) % currentCards.length;
+  renderFlashcard();
+}
+
+// 6. 互動連連看小遊戲
+function startMatchGame() {
+  const board = document.getElementById('game-board');
+  board.classList.remove('hidden');
+  board.innerHTML = '';
+
+  // 隨機取出 4 個單字製作 8 張配對卡片
+  const pick = [...currentCards].sort(() => Math.random() - 0.5).slice(0, 4);
+  let items = [];
+
+  pick.forEach(c => {
+    items.push({ id: c.id, text: c.word, type: 'word' });
+    items.push({ id: c.id, text: c.meaning, type: 'meaning' });
+  });
+
+  // 洗牌
+  items.sort(() => Math.random() - 0.5);
+
+  let selected = null;
+
+  items.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'm-card';
+    card.innerText = item.text;
+
+    card.onclick = () => {
+      if (card.classList.contains('matched')) return;
+
+      if (!selected) {
+        selected = { item, el: card };
+        card.classList.add('selected');
+      } else {
+        if (selected.el === card) return; // 點擊同張卡片無效
+
+        // 判斷是否 ID 相同且類型不同（原文配中文）
+        if (selected.item.id === item.id && selected.item.type !== item.type) {
+          selected.el.classList.add('matched');
+          card.classList.add('matched');
+          userProfile.xp += 15;
+          updateUI();
+        } else {
+          selected.el.classList.remove('selected');
+        }
+        selected = null;
+      }
+    };
+    board.appendChild(card);
   });
 }
 
+// 7. 地圖關卡節點
+function renderMapNodes() {
+  const container = document.getElementById('map-nodes-container');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const stages = ["日常發音與單字", "常用基礎句型", "情境對話練習", "聽力與口語特訓", "全真模擬檢定"];
+
+  stages.forEach((stage, idx) => {
+    const btn = document.createElement('button');
+    btn.className = `node-btn ${idx === 0 ? 'current' : ''}`;
+    btn.innerText = idx === 0 ? '⭐' : '🔒';
+    btn.onclick = () => alert(`關卡【${stage}】\n完成單字卡 SRS 複習與連連看可賺取 XP，累積進度即可解鎖下一關！`);
+    container.appendChild(btn);
+  });
+}
+
+// 8. 介面數據更新
 function updateUI() {
-  document.getElementById('xp-val').innerText = userState.xp;
-  document.getElementById('p-fill').style.width = `${Math.min(100, userState.xp / 10)}%`;
+  document.getElementById('xp-val').innerText = userProfile.xp;
+  document.getElementById('streak-val').innerText = userProfile.streak_days;
+  document.getElementById('prof-xp').innerText = `${userProfile.xp} XP`;
+  document.getElementById('prof-streak').innerText = `${userProfile.streak_days} 天`;
 }
 
-function saveState() {
-  localStorage.setItem('user_lang_learning_data_v3', JSON.stringify(userState));
-  document.getElementById('sync-status').innerText = '✅ 進度已自動保存';
-}
-
-function exportProgress() {
-  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(userState));
-  const downloadAnchor = document.createElement('a');
-  downloadAnchor.setAttribute("href", dataStr);
-  downloadAnchor.setAttribute("download", `language_app_backup_${new Date().toISOString().slice(0,10)}.json`);
-  document.body.appendChild(downloadAnchor);
-  downloadAnchor.click();
-  downloadAnchor.remove();
-}
-
-function importProgress(e) {
-  const fileReader = new FileReader();
-  fileReader.onload = function(event) {
-    try {
-      const importedData = JSON.parse(event.target.result);
-      if (importedData.progress) {
-        userState = importedData;
-        saveState();
-        updateUI();
-        renderPath();
-        renderHistoryLogs();
-        alert("🎉 進度讀取成功！已恢復您的所有學習紀錄。");
-      }
-    } catch(err) {
-      alert("❌ 讀取檔案失敗，請確認是否為正確的備份檔。");
-    }
-  };
-  fileReader.readAsText(e.target.files[0]);
-}
-
+// 初始化啟動
 window.onload = init;
